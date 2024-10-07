@@ -1,10 +1,12 @@
 Package: gmacsr
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: ADFG tools for running and viewing GMACS models
+Version: 0.1
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+    person("Tyler", "Jackson", , "tyler.jackson@alaska.gov", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Caitlin", "Stern", , "caitlin.stern@alaska.gov", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))       
+Description: ADFG tools for running and viewing GMACS models
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
