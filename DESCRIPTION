@@ -24,5 +24,6 @@ Depends:
     magrittr,
     patchwork,
     purrr,
+    stringr,
     tibble,
     tidyr

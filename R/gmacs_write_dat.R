@@ -155,6 +155,7 @@ gmacs_write_dat <- function(input, file = NULL){
           dplyr::select(-org_series) %>%
           t %>%
           .[,j] %>%
+          replace(is.na(.), "0.0000") %>%
           str_c(., collapse = " ") -> out[last + j,]
 
       }
@@ -197,7 +198,7 @@ gmacs_write_dat <- function(input, file = NULL){
 
   # eof ----
 
-  out[last + 1,] <- "eof"; last <- last + 1
+  out[last + 1,] <- "# eof"; last <- last + 1
   out[last + 1,] <- "9999"; last <- last + 1
   # write
   writeLines(out[!is.na(out[,1]),], file)

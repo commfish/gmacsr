@@ -29,6 +29,7 @@ gmacs_plot_catch <- function(all_out = NULL, save_plot = T, plot_dir = NULL, y_l
   data_summary %>%
     nest_by(series, units, .keep = T) %>% ungroup %>%
     mutate(y_lab = ifelse(is.null(y_labs), NA, y_labs)) %>%
+    #dplyr::slice(1) %>% # pull(data) %>% .[[1]]-> data
     mutate(plot = purrr::map2(data, y_lab, function(data, y_lab) {
 
       # y label
