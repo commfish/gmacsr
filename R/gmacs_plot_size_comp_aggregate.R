@@ -1,6 +1,6 @@
-#' Plot Fit to Size Comp Data
+#' Plot Aggregated Fit to Size Comp Data
 #'
-#' Plot fits to size data from Gmacsall.out data summary
+#' Plot fits to size data from Gmacsall.out data summary aggregated over all years by series
 #' @param all_out Output from gmacs_read_allout() as nested list. Example: all_out = list(mod_23.0a, mod_23.1b).
 #' @param save_plot  T/F save plot. Default = T.
 #' @param plot_dir  Null. Directory in which to save plot. If NULL, a directory called 'plots' will be created in the same directory as gmacs.dat.
@@ -15,11 +15,11 @@
 #' @param version NULL. Character string passed to gmacs_read_allout() denoting GMACS version, not needed if all.out is provided.
 
 #' @return Plot of fit to catch data by series
-#' @examples gmacs_plot_size_comp(list(bbrkc), save_plot = T,size_lab = "CL", add_n = F, add_n_est = T, agg_series = F)
+#' @examples gmacs_plot_size_comp_aggregate(list(bbrkc), save_plot = T,size_lab = "CL", add_n = F, add_n_est = T, agg_series = F)
 #'
 #' @export
 #'
-gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL, size_lab = "Size", add_n = T, add_n_est = T, agg_series = T, agg_series_label = NULL, data_summary = NULL, file = NULL, model_name = NULL, version = NULL) {
+gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_dir = NULL, size_lab = "Size", add_n = T, add_n_est = T, agg_series = T, agg_series_label = NULL, data_summary = NULL, file = NULL, model_name = NULL, version = NULL) {
 
   # create output directories
   if(save_plot == T & is.null(plot_dir)) {plot_dir <- file.path(getwd(), "plots"); dir.create(plot_dir, showWarnings = F, recursive = TRUE)}
@@ -33,6 +33,13 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
     group_by(model, mod_series, year, size) %>%
     mutate(nsamp_obs = sum(nsamp_obs),
            nsamp_est = sum(nsamp_est)) %>% ungroup -> data_summary
+
+  data_summary %>%
+    group_by(model, org_series, mod_series, aggregate_series, size) %>%
+    summarise(obs = sum(obs),
+              pred = sum(pred),
+              nsamp_obs = sum(nsamp_obs),
+              nsamp_est = sum(nsamp_est)) %>% ungroup -> data_summary
 
   # sample size notation
   if(add_n == T & add_n_est == F){data_summary <- data_summary %>% mutate(n_note = paste0("N = ", prettyNum(nsamp_obs, big.mark = ",")))}
@@ -50,7 +57,7 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
       mutate(aggregate_series = NA) -> data_summary
     }
   data_summary %>%
-    nest_by(mod_series, .keep = T) %>% ungroup %>%
+    nest_by(mod_series, .keep = T) %>% ungroup %>% #pull(data) %>% .[[4]] -> data
     mutate(plot = purrr::map(data, function(data) {
 
       # determine if comp is aggregated
@@ -63,9 +70,6 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
       bin_width <- size_bins[2] - size_bins[1]
 
       if(agg == F){
-        ### plot dimensions
-        cols <- ifelse(n_yr >= 12, 3, ifelse(n_yr >= 6, 2, 1))
-        rows <- ifelse(cols == 1, n_yr, ifelse(cols == 2, ceiling(n_yr/2), ceiling(n_yr/3)))
         ### plot
         data %>%
           mutate(obs = ifelse(obs == 0, NA, obs),
@@ -75,10 +79,8 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
           geom_line(aes(x = size, y = pred, color = model))+
           scale_y_continuous(expand = expand_scale(mult = c(0, 0.1), add = c(0, 0)))+
           labs(x = size_lab, y = NULL, color = NULL, fill = NULL)+
-          geom_text_npc(aes(npcx = "left", npcy = 0.6, label = year), check_overlap = T, size = 3)+
-          geom_text_npc(aes(npcx = "right", npcy = 0.9, label = n_note),
+          geom_text_npc(aes(npcx = "left", npcy = 0.9, label = n_note),
                         check_overlap = T, size = 3)+
-          facet_wrap(~year, nrow = rows, ncol = cols, dir = "v")+
           scale_color_manual(values = cbpalette)+
           theme(panel.spacing.x = unit(0.2, "lines"),
                 panel.spacing.y = unit(0, "lines"),
@@ -113,14 +115,12 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
           summarise(divider = min(plot_size) - bin_width) %>% pull(divider) -> divider
         if(is.null(agg_series_label)) {agg_series_label <- unique(data$aggregate_series)}
 
-        ### plot dimensions
-        cols <- ifelse(n_yr >= 12, 3, ifelse(n_yr >= 6, 2, 1))
-        rows <- ifelse(cols == 1, n_yr, ifelse(cols == 2, ceiling(n_yr/2), ceiling(n_yr/3)))
         ### plot
         data %>%
           mutate(obs = ifelse(obs == 0, NA, obs),
                  pred = ifelse(pred == 0, NA, pred)) %>%
           mutate(agg_series_label = factor(agg_series_label[aggregate_series], levels = agg_series_label)) %>%
+
           ggplot()+
           geom_bar(aes(x = plot_size, y = obs, fill = agg_series_label), stat = "identity", position = "identity", color = NA, width = bin_width)+
           geom_line(aes(x = plot_size, y = pred, group = interaction(aggregate_series, model), color = model))+
@@ -128,10 +128,8 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
           scale_x_continuous(breaks = breaks, labels = labels)+
           scale_y_continuous(expand = expand_scale(mult = c(0, 0.1), add = c(0, 0)))+
           labs(x = size_lab, y = NULL, color = NULL, fill = NULL)+
-          geom_text_npc(aes(npcx = "left", npcy = 0.6, label = year), check_overlap = T, size = 3)+
-          geom_text_npc(aes(npcx = "right", npcy = 0.9, label = n_note),
+          geom_text_npc(aes(npcx = "left", npcy = 0.9, label = n_note),
                         check_overlap = T, size = 3)+
-          facet_wrap(~year, nrow = rows, ncol = cols, dir = "v")+
           scale_color_manual(values = cbpalette)+
           scale_fill_grey()+
           theme(panel.spacing.x = unit(0.2, "lines"),
@@ -149,10 +147,8 @@ gmacs_plot_size_comp <- function(all_out = NULL, save_plot = T, plot_dir = NULL,
 
       ### save
       if(save_plot == T){
-        height = min(rows, 10)
-        width = min(cols*3, 9)
-        ggsave(file.path(plot_dir, paste0("comp_fit_series_", unique(data$mod_series),".png")),
-               plot = p, height = height, width = width, units = "in")
+        ggsave(file.path(plot_dir, paste0("aggregated_comp_fit_series_", unique(data$mod_series),".png")),
+               plot = p, height = 3.6, width = 6, units = "in")
       }
 
       return(p)
