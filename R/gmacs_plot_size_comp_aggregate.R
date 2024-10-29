@@ -14,7 +14,7 @@
 #' @param model_name NULL. Character string passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
 #' @param version NULL. Character string passed to gmacs_read_allout() denoting GMACS version, not needed if all.out is provided.
 
-#' @return Plot of fit to catch data by series
+#' @return Plot of fit to size composition data by series aggregated over years
 #' @examples gmacs_plot_size_comp_aggregate(list(bbrkc), save_plot = T,size_lab = "CL", add_n = F, add_n_est = T, agg_series = F)
 #'
 #' @export

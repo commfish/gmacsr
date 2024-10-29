@@ -45,7 +45,7 @@ gmacs_plot_size_comp(
 \item{version}{NULL. Character string passed to gmacs_read_allout() denoting GMACS version, not needed if all.out is provided.}
 }
 \value{
-Plot of fit to catch data by series
+Plot of fit to size composition data by series
 }
 \description{
 Plot fits to size data from Gmacsall.out data summary
