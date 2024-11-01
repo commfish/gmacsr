@@ -12,6 +12,9 @@
 #'
 gmacs_read_allout <- function(file, model_name = NULL, version = NULL) {
 
+  # ggplot theme anticipating plotting later in the workflow
+  theme_set(theme_sleek())
+
 if(is.null(version)){version = "2.20.16"}
 
 if(version == "2.01.M.10"){
