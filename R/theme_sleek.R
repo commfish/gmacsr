@@ -2,7 +2,7 @@
 #'
 #' @export
 #'
-{theme_sleek <- function(base_size = 12) {
+theme_sleek <- function(base_size = 12) {
 
   half_line <- base_size/2
 
@@ -27,4 +27,6 @@
     )
 
 }
-theme_set(theme_sleek())}
+
+# wrtie to ggplot
+ggplot <- function(...) ggplot2::ggplot(...) + theme_sleek()
