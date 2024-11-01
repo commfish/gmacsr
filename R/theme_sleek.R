@@ -28,5 +28,3 @@ theme_sleek <- function(base_size = 12) {
 
 }
 
-# wrtie to ggplot
-ggplot <- function(...) ggplot2::ggplot(...) + theme_sleek()
