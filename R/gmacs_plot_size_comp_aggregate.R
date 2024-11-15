@@ -34,12 +34,17 @@ gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_d
     mutate(nsamp_obs = sum(nsamp_obs),
            nsamp_est = sum(nsamp_est)) %>% ungroup -> data_summary
 
+  # add aggregate series if missing
+  if(!("aggregate_series" %in% names(data_summary))) {data_summary$aggregate_series <- NA}
+
+  # summarise
   data_summary %>%
     group_by(model, org_series, mod_series, aggregate_series, size) %>%
     summarise(obs = sum(obs),
               pred = sum(pred),
               nsamp_obs = sum(nsamp_obs),
               nsamp_est = sum(nsamp_est)) %>% ungroup -> data_summary
+
 
   # sample size notation
   if(add_n == T & add_n_est == F){data_summary <- data_summary %>% mutate(n_note = paste0("N = ", prettyNum(nsamp_obs, big.mark = ",")))}
