@@ -1453,13 +1453,13 @@ if(version == "2.20.16"){
     tmp[i,] <- as.numeric(allout[last+1+i, 1:5])
   }
   as_tibble(tmp) %>%
-    rename_all(~c("mod_series", "row", "multiplier", "nsamp_est", "nsamp_obs")) -> out$effective_sample_size
+    rename_all(~c("mod_series", "row", "multiplier", "nsamp_est", "nsamp_obs_wt")) -> out$effective_sample_size
 
-  ## add estimated effectve sample size to output
+  ## add estimated effective sample size to output
   out$size_fit_summary %>%
     left_join(out$effective_sample_size %>%
-                transmute(year = tmp_neff$year, mod_series, multiplier, nsamp_est, nsamp_obs),
-              by = join_by(year, mod_series, nsamp_obs)) -> out$size_fit_summary
+                transmute(year = tmp_neff$year, mod_series, multiplier, nsamp_est, nsamp_obs_wt),
+              by = join_by(year, mod_series)) -> out$size_fit_summary
 
   ## sdnr_MAR_lf
   last <- grep("sdnr_MAR_lf", allout[,1])
