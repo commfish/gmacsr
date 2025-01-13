@@ -3,7 +3,7 @@
 #' Load Gmacsall.out file in R
 #' @param file NULL. Path to Gmacsall.out file.
 #' @param model_name NULL. Character string to save as object in output, later to be used for plot legends. Example: "23.1b".
-#' @param version NULL. Character string denoting GMACS version. Default: "2.20.16".
+#' @param version NULL. Character string denoting GMACS version. Default: "2.20.17".
 
 #' @return List of file contents and model results
 #' @examples gmacs_read_allout(file = "./AIGKC/models/2024/may/EAG/23.1b/Gmacsall.out", model_name = "23.1b")
@@ -15,7 +15,7 @@ gmacs_read_allout <- function(file, model_name = NULL, version = NULL) {
   # ggplot theme anticipating plotting later in the workflow
   theme_set(theme_sleek())
 
-if(is.null(version)){version = "2.20.16"}
+if(is.null(version)){version = "2.20.17"}
 
 if(version == "2.01.M.10"){
   # setup ----
@@ -1144,7 +1144,7 @@ if(version == "2.20.14"){
   # objective function ----
   out$objective_function <- out$likelihoods_by_type %>% filter(process == "total") %>% pull(net_lik)
 }
-if(version == "2.20.16"){
+if(version %in% c("2.20.16", "2.20.17")){
   # setup ----
   # Suppress the NA message in the coercion to double
   options(warn = -1)

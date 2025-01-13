@@ -3,7 +3,7 @@
 #' Load .ctl file in R
 #' @param ctl_file NULL. Path to .ctl file.
 #' @param dat_file NULL. Path to .dat file.
-#' @param version NULL. Character string denoting GMACS version. Default: "2.20.16".
+#' @param version NULL. Character string denoting GMACS version. Default: "2.20.17".
 
 #' @return List of .ctl file contents. LIKELY STILL CONTAINS BUGS
 #' @examples gmacs_read_ctl(ctl_file = "./AIGKC/models/2024/may/EAG/23.1b/EAG_23_1b.ctl", dat_file = "./AIGKC/models/2024/may/EAG/23.1b/EAG_23_1b.dat", model_name = "23.1b")
@@ -12,8 +12,8 @@
 #'
 gmacs_read_ctl <- function(ctl_file, dat_file, version = NULL){
 
-  if(is.null(version)){version = "2.20.16"}
-  if(version == "2.20.16"){
+  if(is.null(version)){version = "2.20.17"}
+  if(version %in% c("2.20.16", "2.20.17")){
     # setup ----
 
     # Suppress the NA message in the coercion to double

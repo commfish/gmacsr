@@ -3,7 +3,7 @@
 #' Load GMACS .dat file in R
 #' @param dat_file NULL. Path to .dat file.
 #' @param model_name NULL. Character string to save as object in output, later to be used for plot legends. Example: "23.1b".
-#' @param version NULL. Character string denoting GMACS version. Default: "2.20.16".
+#' @param version NULL. Character string denoting GMACS version. Default: "2.20.17".
 
 #' @return List of .dat file contents.
 #' @examples gmacs_read_dat(dat_file = "./AIGKC/models/2024/may/EAG/23.1b/EAG_23_1b.dat", model_name = "23.1b")
@@ -15,8 +15,8 @@ gmacs_read_dat <- function(dat_file, model_name = NULL, version = NULL) {
   # ggplot theme anticipating plotting later in the workflow
   theme_set(theme_sleek())
 
-  if(is.null(version)){version = "2.20.16"}
-  if(version == "2.20.16"){
+  if(is.null(version)){version = "2.20.17"}
+  if(version %in% c("2.20.16", "2.20.17")){
     # setup ----
 
     # Suppress the NA message in the coercion to double
