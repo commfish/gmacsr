@@ -152,11 +152,11 @@ gmacs_write_dat <- function(input, file = NULL){
         input$size_comp %>%
           pivot_wider(names_from = size, values_from = obs) %>%
           filter(org_series == i) %>%
-          dplyr::select(-org_series) %>%
+          dplyr::select(-org_series) %>% arrange(year) %>%
           t %>%
           .[,j] %>%
           replace(is.na(.), "0.0000") %>%
-          str_c(., collapse = " ") -> out[last + j,]
+          str_c(., collapse = " ")  -> out[last + j,]
 
       }
       last <- last + input$n_size_rows[i]
