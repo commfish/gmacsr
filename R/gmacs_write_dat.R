@@ -174,6 +174,17 @@ gmacs_write_dat <- function(input, file = NULL){
   out[last + 1,] <- paste(input$n_growth_obs, "# nGrowthObs"); last <- last + 1
   # growth data frame
   if(input$growth_data_type == 3){
+    out[last + 1,] <- "# premolt_size, sex, increment, cv"; last <- last + 1
+    for(i in 1:input$n_growth_obs){
+      input$growth %>%
+        t %>%
+        .[,i] %>%
+        str_c(., collapse = " ") -> out[last + i,]
+    }
+    last <- last + nrow(input$growth)
+  }
+
+  if(input$growth_data_type == 3){
     out[last + 1,] <- "# size-class-at-release, sex, size-class-at-recapture, and time-at-liberty fleet recapture_year number"; last <- last + 1
     for(i in 1:input$n_growth_obs){
       input$growth %>%
