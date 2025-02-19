@@ -26,4 +26,5 @@ Depends:
     purrr,
     stringr,
     tibble,
-    tidyr
+    tidyr,
+    readr

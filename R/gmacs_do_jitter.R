@@ -57,15 +57,18 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
 
     # do jitter ----
 
+
+    # jitter name
+    jit <- paste0("./jitter_", sd)
     # create subdirectory for jitter run files
-    dir.create("./jitter")
+    dir.create(jit)
     # rewrite gmacs.dat
-    gmacs_write_files_dat(dat, file = "./jitter/gmacs.dat")
+    gmacs_write_files_dat(input = dat, file = file.path(jit, "gmacs.dat"))
     # put files in - this likely will not work with relative pathes
     file.copy(c(dat$dat_file, dat$ctl_file, dat$prj_file, "gmacs.exe"),
-              to = "./jitter")
+              to = jit)
     # set working
-    setwd("./jitter")
+    setwd(jit)
     # names of necessary gmacs files
     gfiles <- list.files()
 
@@ -104,49 +107,71 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
 
   }
 
-  # get mle estimates of objects
-  mle_ao <- gmacs_read_allout("./Gmacsall.out", model_name = model_name, version = version)
+  # get original estimates of objects
+  org_ao <- gmacs_read_allout("./Gmacsall.out", model_name = model_name, version = version)
+
+  # look for directory with mle (from previous jitter runs)
+  if(file.exists("./mle/Gmacsall.out")){mle_ao <- gmacs_read_allout("./Gmacsall.out", model_name = model_name, version = version)}
+  if(!file.exists("./mle/Gmacsall.out")){mle_ao <- org_ao}
+
+  # identify mle model
+  mle_test <- mle_ao$objective_function < min(out$obj_function)
+  if(mle_test == F){
+
+    # find mle dir
+    out %>%
+      filter( obj_function == min(obj_function)) %>%
+      pull(iteration) %>% paste0(jit, "/run_", .) -> mle_dir
+    mle_files <- list.files(mle_dir, recursive = T)
+    # copy files to mle directory
+    if(!dir.exists("./mle")){dir.create("mle")}
+    file.copy(file.path(mle_dir, mle_files), file.path("mle", mle_files), recursive = T, overwrite = T)
+    }
+
   # set wd back to original
   setwd(wd)
 
   # plots ----
 
-  if(plot_only == T){out <- read_csv(paste0(csv_dir, "/", mle_ao$model_name, "_jitter_sd_", sd, ".csv"))}
+  if(plot_only == T){out <- read_csv(paste0(csv_dir, "/", org_ao$model_name, "_jitter_sd_", sd, ".csv"))}
 
   # obj fxn
   ggplot()+
     geom_histogram(data = out, aes(x = obj_function), color = 1, fill = "grey80",
                    width = 1)+
-    geom_vline(xintercept = mle_ao$objective_function, linetype = 2, color = 2)+
+    geom_vline(xintercept = org_ao$objective_function, linetype = 2, color = 2)+
     scale_x_continuous(labels = scales::comma)+
     labs(x = "Negative Log-likelihood", y = "Jitter Runs") -> p_obj
 
   ggplot()+
     geom_point(aes(x = out$obj_function, y = out$mmb_curr))+
-    geom_point(aes(x = mle_ao$objective_function, y = mle_ao$mmb_curr), size = 2, shape = 21, fill = "white")+
+    geom_point(aes(x = org_ao$objective_function, y = org_ao$mmb_curr), size = 2, shape = 22, fill = "white")+
+    geom_point(aes(x = mle_ao$objective_function, y = mle_ao$mmb_curr), size = 2, shape = 21, fill = cbpalette[1])+
     scale_y_continuous(labels = scales::comma, limits = c(0, NA))+
-    labs(x = "Negative Log-likelihood", y = paste0("MMB (", gsub("_", " ", mle_ao$wt_units), ")") ) -> p_mmb
+    labs(x = "Negative Log-likelihood", y = paste0("MMB (", gsub("_", " ", org_ao$wt_units), ")") ) -> p_mmb
 
   ggplot()+
     geom_point(aes(x = out$obj_function, y = out$bmsy))+
-    geom_point(aes(x = mle_ao$objective_function, y = mle_ao$bmsy), size = 2, shape = 21, fill = "white")+
+    geom_point(aes(x = org_ao$objective_function, y = org_ao$bmsy), size = 2, shape = 22, fill = "white")+
+    geom_point(aes(x = mle_ao$objective_function, y = mle_ao$bmsy), size = 2, shape = 21, fill = cbpalette[1])+
     scale_y_continuous(labels = scales::comma, limits = c(0, NA))+
-    labs(x = "Negative Log-likelihood", y = bquote(B["MSY"]~"("~.(gsub("_", " ", mle_ao$wt_units))~")") ) -> p_bmsy
+    labs(x = "Negative Log-likelihood", y = bquote(B["MSY"]~"("~.(gsub("_", " ", org_ao$wt_units))~")") ) -> p_bmsy
 
   ggplot()+
     geom_point(aes(x = out$obj_function, y = out$ofl))+
-    geom_point(aes(x = mle_ao$objective_function, y = mle_ao$ofl_tot), size = 2, shape = 21, fill = "white")+
+    geom_point(aes(x = org_ao$objective_function, y = org_ao$ofl_tot), size = 2, shape = 22, fill = "white")+
+    geom_point(aes(x = mle_ao$objective_function, y = mle_ao$ofl_tot), size = 2, shape = 21, fill = cbpalette[1])+
     scale_y_continuous(labels = scales::comma, limits = c(0, NA))+
-    labs(x = "Negative Log-likelihood", y = paste0("OFL (", gsub("_", " ", mle_ao$wt_units), ")") ) -> p_ofl
+    labs(x = "Negative Log-likelihood", y = paste0("OFL (", gsub("_", " ", org_ao$wt_units), ")") ) -> p_ofl
 
 
-  if(save_plot == T){ggsave(filename = paste0(plot_dir, "/", mle_ao$model_name, "_jitter_sd_", sd, ".png"),
+  if(save_plot == T){ggsave(filename = paste0(plot_dir, "/", org_ao$model_name, "_jitter_sd_", sd, ".png"),
                             plot = (p_obj + p_mmb) / (p_bmsy + p_ofl),
                             height = 6, width = 8, units = "in")}
 
   # output ----
   plots <- list(p_obj, p_mmb, p_bmsy, p_ofl)
-  if(save_csv == T) {write_csv(out, paste0(csv_dir, "/", mle_ao$model_name, "_jitter_sd_", sd, ".csv"))}
+  if(save_csv == T) {write_csv(out, paste0(csv_dir, "/", org_ao$model_name, "_jitter_sd_", sd, ".csv"))}
 
   if(save_plot == F){return(c(list(out), plots))}else{return(out)}
 
