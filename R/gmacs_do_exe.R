@@ -8,13 +8,14 @@
 #' @param level Level of convergence for Francis weights. Default = 0.001.
 #' @param max_iter Maximum iterations for tuning Francis weights. Default = 100.
 #' @param reweight_only T/F do initial GMACS run (F) or skip to iterative reweighting (T).
+#' @param jitter_rseed Use random number seed from jitter.txt file to match previous jittering run.
 #'
 #' @return Run GMACS, standard GMACS output files.
 #' @examples gmacs_do_exe(gmacs.dat = "./AIGKC/models/2024/may/EAG/23.1b/gmacs.dat")
 #'
 #' @export
 #'
-gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.001, max_iter = 100, reweight_only = F) {
+gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.001, max_iter = 100, reweight_only = F, jitter_rseed = NULL) {
 
   options(warn = -1)
   # get parent directory
@@ -37,9 +38,20 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
     dat[grep("pin", dat)] <- "0 # use pin file (0=no, 1=yes)"
     writeLines(dat, "./gmacs.dat")
   }
+
+
+  # set gmacs call depending on jitter_rseed
+  if(is.null(jitter_rseed)){g_call <- "gmacs.exe"}
+  if(!is.null(jitter_rseed)){
+    rseed <- readLines("jitter.txt")
+    g_call <- paste0("gmacs.exe -jitter ", jitter_rseed)
+    }
+
+  # run exe ----
+
+  # w/o reweight
   if(reweight_only == F){
-    # run gmacs.exe
-    if(wait == F){shell("gmacs.exe", wait = F, intern = F)}else{shell("gmacs.exe")}
+    if(wait == F){shell(g_call, wait = F, intern = F)}else{shell("gmacs.exe")}
   }
   # do reweighting
   if(reweight == T) {
@@ -70,7 +82,7 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
         ctl[grep("# Lambda for effective sample size", ctl)] <- paste(str_flatten(rep_wts, collapse = " "), "# Lambda for effective sample size")
         writeLines(ctl, ctl_file)
         # run gmacs
-        shell("gmacs.exe")
+        shell(g_call)
         # test convergence
         readLines("gmacs_in.ctl")[grep("# Lambda for effective sample size", readLines("gmacs_in.ctl"))] %>%
           str_split(" ") %>% unlist %>% as.numeric %>% na.omit -> ctl_wts
@@ -86,7 +98,7 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
       # turn on reference point calculation, run gmacs once more
       dat[33] <- "1 # Calculate reference points (0=no)"
       writeLines(dat, "./gmacs.dat")
-      shell("gmacs.exe")
+      shell(g_call)
       setwd(wd)
       # done
       if(converged == F) {return(paste0("wts did not reach convergence level = ", level))}
