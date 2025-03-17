@@ -150,6 +150,7 @@ gmacs_write_dat <- function(input, file = NULL){
       for(j in 1:input$n_size_rows[i]){
 
         input$size_comp %>%
+          arrange(size) %>%
           pivot_wider(names_from = size, values_from = obs) %>%
           filter(org_series == i) %>%
           dplyr::select(-org_series) %>% arrange(year) %>%
