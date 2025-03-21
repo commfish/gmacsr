@@ -60,7 +60,7 @@ gmacs_plot_data_range <- function(all_out = NULL, save_plot = T, plot_dir = NULL
     }),
     size_composition = purrr::map(ao, function(data){
       data$size_fit_summary %>%
-        mutate(type = gsub("All", "Total", type)) %>%
+        mutate(type = str_to_title(gsub("All", "Total", type))) %>%
         rename(series = mod_series) %>%
         rowwise %>%
         mutate(group = gsub("_", " ", ifelse(data$n_sex > 1, paste(fleet, type, sex), paste(fleet, type)))) %>%

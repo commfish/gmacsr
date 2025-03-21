@@ -51,7 +51,7 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
 
   # w/o reweight
   if(reweight_only == F){
-    if(wait == F){shell(g_call, wait = F, intern = F)}else{shell("gmacs.exe")}
+    if(wait == F){shell(g_call, wait = F, intern = F)}else{shell(g_call)}
   }
   # do reweighting
   if(reweight == T) {
