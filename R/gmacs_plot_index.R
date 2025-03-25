@@ -5,7 +5,7 @@
 #' @param save_plot  T/F save plot. Default = T.
 #' @param plot_dir  Null. Directory in which to save plot. If NULL, a directory called 'plots' will be created in the same directory as gmacs.dat.
 #' @param y_labs NULL. Optional, custom y axis labels as character vector.
-#' @param data_summary NULL. Alternate way to bring in data, output of gmacs_get_catch_summary()
+#' @param data_summary NULL. Alternate way to bring in data, output of gmacs_get_index_summary()
 #' @param file NULL. File paths to Gmacsall.out for each model to compare, passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
 #' @param model_name NULL. Character string passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
 #' @param version NULL. Character string passed to gmacs_read_allout() denoting GMACS version, not needed if all.out is provided.
