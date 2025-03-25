@@ -5,7 +5,7 @@
 \alias{cbpalette}
 \title{Default color palette}
 \format{
-An object of class \code{character} of length 15.
+An object of class \code{character} of length 23.
 }
 \usage{
 cbpalette

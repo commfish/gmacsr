@@ -11,7 +11,8 @@ gmacs_do_exe(
   reweight = F,
   level = 0.001,
   max_iter = 100,
-  reweight_only = F
+  reweight_only = F,
+  jitter_rseed = NULL
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ gmacs_do_exe(
 \item{max_iter}{Maximum iterations for tuning Francis weights. Default = 100.}
 
 \item{reweight_only}{T/F do initial GMACS run (F) or skip to iterative reweighting (T).}
+
+\item{jitter_rseed}{Use random number seed from jitter.txt file to match previous jittering run.}
 }
 \value{
 Run GMACS, standard GMACS output files.
