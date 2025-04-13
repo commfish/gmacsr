@@ -12,8 +12,8 @@
 #'
 gmacs_read_files_dat <- function(gmacs.dat, model_name = NULL, version = NULL) {
 
-if(is.null(version)){version = "2.20.20"}
-if(version %in% c("2.20.20", "2.20.19", "2.20.17", "2.20.16", "2.20.14")){
+if(is.null(version)){version = "2.20.21"}
+if(version %in% c("2.20.21", "2.20.20", "2.20.19", "2.20.17", "2.20.16", "2.20.14")){
   # setup ----
 
   # Suppress the NA message in the coercion to double

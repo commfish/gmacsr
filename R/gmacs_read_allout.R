@@ -2058,7 +2058,7 @@ if(version %in% c("2.20.21")){
 
     ## add one step ahead residuals
     out$size_fit_summary %>%
-      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>%
+      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>%# pull(data) %>% .[[1]] -> data
       mutate(data = purrr::map(data, function(data) {
 
         # observed matrix
@@ -2066,7 +2066,7 @@ if(version %in% c("2.20.21")){
           transmute(year, size, obs.r = round(obs*nsamp_est)) %>%
           rename(obs = obs.r) %>%
           pivot_wider(names_from = year, values_from = obs) %>%
-          select(-c(size)) %>%
+          dplyr::select(-c(size)) %>%
           as.matrix() -> obs
         colnames(obs) <- NULL
 
