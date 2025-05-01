@@ -24,12 +24,12 @@ gmacs_plot_osa_residuals <- function(all_out = NULL, save_plot = T, plot_dir = N
   if(save_plot == T & is.null(plot_dir)) {plot_dir <- file.path(getwd(), "plots"); dir.create(plot_dir, showWarnings = F, recursive = TRUE)}
   if(!is.null(plot_dir) && !file.exists(plot_dir)) {dir.create(plot_dir, showWarnings = F, recursive = TRUE)}
   data_summary %>%
-    nest_by(across(intersect(names(.), c("mod_series", "aggregate_series"))), .keep = T) %>% ungroup %>%
+    nest_by(across(intersect(names(.), c("mod_series", "aggregate_series"))), .keep = T) %>% ungroup %>%# pull(data) %>% .[[1]] -> data
     mutate(plot = purrr::map(data, function(data) {
       # qq plot
       data %>%
         filter(!is.na(osa_residual)) %>%
-        mutate(theor_q = qqnorm(osa_residual, plot.it = FALSE)$x) %>%
+        mutate(theor_q = stats::qqnorm(osa_residual, plot.it = FALSE)$x) %>%
         ggplot()+
         geom_abline()+
         geom_point(aes(x = theor_q, y = osa_residual, color = factor(size)))+
