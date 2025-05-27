@@ -96,7 +96,7 @@ gmacs_plot_size_fit_summary <- function(all_out = NULL, save_plot = T, plot_dir 
           geom_bar(aes(x = size, y = obs), stat = "identity", position = "identity", color = NA, fill = "grey70", width = bin_width, alpha = 0.5)+
           geom_line(aes(x = size, y = pred, color = model), show.legend = F)+
           geom_point(aes(x = size, y = pred, color = model), show.legend = F)+
-          scale_y_continuous(expand = expand_scale(mult = c(0, 0.1), add = c(0, 0)))+
+          scale_y_continuous(expand = expansion(mult = c(0, 0.1), add = c(0, 0)))+
           labs(x = size_lab, y = NULL, color = NULL, fill = NULL)+
           geom_text_npc(aes(npcx = "left", npcy = 0.9, label = n_note),
                         check_overlap = T, size = 3)+
