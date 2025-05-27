@@ -34,7 +34,7 @@ gmacs_plot_size_fit_summary <- function(all_out = NULL, save_plot = T, plot_dir 
 
   # make plot
   data_summary %>%
-    nest_by(across(intersect(names(.), c("mod_series", "aggregate_series"))), .keep = T) %>% ungroup %>%# pull(data) %>% .[[1]] -> data
+    nest_by(across(intersect(names(.), c("mod_series", "aggregate_series"))), .keep = T) %>% ungroup %>% #pull(data) %>% .[[1]] -> data
     mutate(plot = purrr::map(data, function(data) {
 
       # dot plot
@@ -45,7 +45,8 @@ gmacs_plot_size_fit_summary <- function(all_out = NULL, save_plot = T, plot_dir 
         geom_point(aes(x = factor(year), y = size, size = abs(osa_residual), fill = sign), shape = 21)+
         scale_fill_manual(values = c("white", "grey30"))+
         labs(x = NULL, y = size_lab, fill = NULL, size = "abs(Residual)")+
-        scale_x_discrete(breaks = yraxis$breaks, labels = yraxis$labels) -> dot_plot
+        scale_x_discrete(breaks = yraxis$breaks, labels = yraxis$labels)+
+        theme_sleek() -> dot_plot
       # qq plot
       data %>%
         filter(!is.na(osa_residual)) %>%
@@ -54,7 +55,8 @@ gmacs_plot_size_fit_summary <- function(all_out = NULL, save_plot = T, plot_dir 
         geom_abline()+
         geom_point(aes(x = theor_q, y = osa_residual, color = factor(size)))+
         scale_color_manual(values = cbpalette, guide = guide_legend(ncol = 2))+
-        labs(color = NULL, x = "Theoretical Quantiles", y = "Sample quantiles") -> qq_plot
+        labs(color = NULL, x = "Theoretical Quantiles", y = "Sample quantiles")+
+        theme_sleek() -> qq_plot
 
       # get some detail about size bins
       size_bins <- data %>% pull(size) %>% unique
@@ -104,7 +106,7 @@ gmacs_plot_size_fit_summary <- function(all_out = NULL, save_plot = T, plot_dir 
           theme(panel.spacing.x = unit(0.2, "lines"),
                 panel.spacing.y = unit(0, "lines"),
                 panel.border = element_blank(),
-                axis.line.x = element_line(color = "grey70", size = 0.2),
+                axis.line.x = element_line(color = "grey70", linewidth = 0.2),
                 axis.ticks.y = element_blank(),
                 axis.text.y = element_blank(),
                 axis.text.x = element_text(size = 8),
@@ -155,7 +157,7 @@ gmacs_plot_size_fit_summary <- function(all_out = NULL, save_plot = T, plot_dir 
           theme(panel.spacing.x = unit(0.2, "lines"),
                 panel.spacing.y = unit(0, "lines"),
                 panel.border = element_blank(),
-                axis.line.x = element_line(color = "grey70", size = 0.2),
+                axis.line.x = element_line(color = "grey70", linewidth = 0.2),
                 axis.ticks.y = element_blank(),
                 axis.text.y = element_blank(),
                 axis.text.x = element_text(size = 8),
