@@ -2606,13 +2606,13 @@ if(version %in% c("2.20.31")){
     # index fix_summary ----
 
     ## index summary
-    tmp <- matrix(nrow = length((last+3):(grep("sdnr_MAR_cpue", allout[,1])-2)), ncol = 13)
+    tmp <- matrix(nrow = length((last+3):(grep("sdnr_MAR_cpue", allout[,1])-2)), ncol = 14)
     for(i in 1:nrow(tmp)){
-      tmp[i,] <- as.character(allout[last+2+i,1:13])
+      tmp[i,] <- as.character(allout[last+2+i,1:14])
     }
     as_tibble(tmp) %>%
-      mutate_at(c(1:2, 4, 7:9, 11:13), as.numeric) %>%
-      rename_all(~c("series", "year", "fleet", "season", "sex", "maturity", "obs_index", "obs_cv",
+      mutate_at(c(1:3, 5, 8:10, 12:14), as.numeric) %>%
+      rename_all(~c("series", "iq", "year", "fleet", "season", "sex", "maturity", "obs_index", "obs_cv",
                     "tot_cv", "units", "q", "timing", "pred_index")) -> out$index_fit_summary; last <- last + nrow(tmp) + 2
     ## sdnr_MAR_cpue
     tmp <- matrix(nrow = length(unique(out$index_fit_summary$series)), ncol = 2)
