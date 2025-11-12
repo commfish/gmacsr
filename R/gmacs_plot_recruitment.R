@@ -86,7 +86,7 @@ gmacs_plot_recruitment <- function(all_out = NULL, save_plot = T, plot_dir = NUL
       ggsave(file.path(plot_dir, "female_recruitment.png"), plot = fem, height = 4.2, width = 7, units = "in")
       ggsave(file.path(plot_dir, "male_recruitment.png"), plot = mal, height = 4.2, width = 7, units = "in")
     }
-    if(save_plot == F){plots = c(tot, fem, mal)}
+    if(save_plot == F){plots = list(tot, fem, mal)}
   }
   # only male
   if(!("recruit_female" %in% names(data_summary))) {

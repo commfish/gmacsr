@@ -2058,7 +2058,7 @@ if(version %in% c("2.20.21")){
 
     ## add one step ahead residuals
     out$size_fit_summary %>%
-      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>%# pull(data) %>% .[[1]] -> data
+      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>% #pull(data) %>% .[[1]] -> data
       mutate(data = purrr::map(data, function(data) {
 
         # observed matrix
@@ -2722,7 +2722,7 @@ if(version %in% c("2.20.31")){
         # set random seed
         set.seed(103117)
         # calculate residuals:
-        res <- resMulti(obs, pred)
+        res <- compResidual::resMulti(obs, pred)
         # fill tibble with for loop, getting odd error with res object class 'cres'...
         osa <- tibble(year = numeric(), size = numeric(), osa_residual = numeric())
         yrs <- data %>% distinct(year) %>% pull(year)

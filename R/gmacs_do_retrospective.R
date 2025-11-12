@@ -105,6 +105,7 @@ gmacs_do_retrospective <- function(gmacs.dat, n_peel, pin = F, wait = T, plot_mm
       pull(rho) %>% mean -> mohn_rho
 
     data_summary %>%
+      bind_rows(ao_full$derived_quant_summary) %>%
       group_by(model) %>%
       mutate(terminal_yr = as.character(max(year))) %>% ungroup %>%
       ggplot()+
