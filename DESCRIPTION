@@ -28,4 +28,5 @@ Depends:
     tibble,
     tidyr,
     readr,
-    compResidual
+    compResidual,
+    statmod

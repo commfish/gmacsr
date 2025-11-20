@@ -11,7 +11,7 @@ gmacs_read_allout(file, model_name = NULL, version = NULL)
 
 \item{model_name}{NULL. Character string to save as object in output, later to be used for plot legends. Example: "23.1b".}
 
-\item{version}{NULL. Character string denoting GMACS version. Default: "2.20.17".}
+\item{version}{NULL. Character string denoting GMACS version. Default: "2.20.31".}
 }
 \value{
 List of file contents and model results

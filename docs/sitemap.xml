@@ -3,6 +3,7 @@
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/reference/cbpalette.html</loc></url>
+<url><loc>/reference/gmacs_calc_growth_trans.html</loc></url>
 <url><loc>/reference/gmacs_do_exe.html</loc></url>
 <url><loc>/reference/gmacs_do_jitter.html</loc></url>
 <url><loc>/reference/gmacs_do_ofl_dist.html</loc></url>
@@ -32,10 +33,12 @@
 <url><loc>/reference/gmacs_plot_mean_size.html</loc></url>
 <url><loc>/reference/gmacs_plot_mmb.html</loc></url>
 <url><loc>/reference/gmacs_plot_molt_probability.html</loc></url>
+<url><loc>/reference/gmacs_plot_osa_residuals.html</loc></url>
 <url><loc>/reference/gmacs_plot_recruitment.html</loc></url>
 <url><loc>/reference/gmacs_plot_recruitment_distribution.html</loc></url>
 <url><loc>/reference/gmacs_plot_size_comp.html</loc></url>
 <url><loc>/reference/gmacs_plot_size_comp_aggregate.html</loc></url>
+<url><loc>/reference/gmacs_plot_size_fit_summary.html</loc></url>
 <url><loc>/reference/gmacs_read_allout.html</loc></url>
 <url><loc>/reference/gmacs_read_ctl.html</loc></url>
 <url><loc>/reference/gmacs_read_dat.html</loc></url>

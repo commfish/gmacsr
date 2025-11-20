@@ -57,7 +57,8 @@
 <span>  reweight <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  reweight_only <span class="op">=</span> <span class="cn">F</span></span>
+<span>  reweight_only <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>  jitter_rseed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -91,6 +92,10 @@
 
 <dt id="arg-reweight-only">reweight_only<a class="anchor" aria-label="anchor" href="#arg-reweight-only"></a></dt>
 <dd><p>T/F do initial GMACS run (F) or skip to iterative reweighting (T).</p></dd>
+
+
+<dt id="arg-jitter-rseed">jitter_rseed<a class="anchor" aria-label="anchor" href="#arg-jitter-rseed"></a></dt>
+<dd><p>Use random number seed from jitter.txt file to match previous jittering run.</p></dd>
 
 </dl></div>
     <div id="value">

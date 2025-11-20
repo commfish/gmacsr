@@ -11,7 +11,7 @@ gmacs_read_ctl(ctl_file, dat_file, version = NULL)
 
 \item{dat_file}{NULL. Path to .dat file.}
 
-\item{version}{NULL. Character string denoting GMACS version. Default: "2.20.17".}
+\item{version}{NULL. Character string denoting GMACS version. Default: "2.20.31".}
 }
 \value{
 List of .ctl file contents. LIKELY STILL CONTAINS BUGS

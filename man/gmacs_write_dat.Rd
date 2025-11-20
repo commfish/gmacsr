@@ -4,12 +4,14 @@
 \alias{gmacs_write_dat}
 \title{Write .dat file}
 \usage{
-gmacs_write_dat(input, file = NULL)
+gmacs_write_dat(input, file = NULL, version = NULL)
 }
 \arguments{
 \item{input}{Named list of data needed to write file (need more info here), look at output of gmacs_read_dat()}
 
 \item{file}{NULL. File path to write .dat file}
+
+\item{version}{NULL. Character string denoting GMACS version. Default: "2.20.31".}
 }
 \value{
 File saved in specified location.

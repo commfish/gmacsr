@@ -10,7 +10,7 @@
 #'
 #' @export
 #'
-gmacs_write_dat <- function(input, file = NULL){
+gmacs_write_dat <- function(input, file = NULL, version = NULL){
 
   # create output matrix
   out <- matrix(nrow = 1e6)
