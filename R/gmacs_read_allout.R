@@ -2699,7 +2699,7 @@ if(version %in% c("2.20.31")){
 
     ## add one step ahead residuals
     out$size_fit_summary %>%
-      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>% pull(data) %>% .[[2]] -> data
+      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>% #pull(data) %>% .[[2]] -> data
       mutate(data = purrr::map(data, function(data) {
 
         # observed matrix
