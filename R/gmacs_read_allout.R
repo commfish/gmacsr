@@ -2699,7 +2699,7 @@ if(version %in% c("2.20.31")){
 
     ## add one step ahead residuals
     out$size_fit_summary %>%
-      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>%# pull(data) %>% .[[1]] -> data
+      nest_by(across(intersect(names(.), c("mod_series", "aggregate_series")))) %>% ungroup %>% pull(data) %>% .[[2]] -> data
       mutate(data = purrr::map(data, function(data) {
 
         # observed matrix
@@ -2711,6 +2711,7 @@ if(version %in% c("2.20.31")){
           as.matrix() -> obs
         colnames(obs) <- NULL
 
+
         # predicted matrix
         data %>%
           transmute(year, size, pred = pred) %>%
@@ -2718,6 +2719,10 @@ if(version %in% c("2.20.31")){
           dplyr::select(-c(size)) %>%
           as.matrix() -> pred
         colnames(pred) <- NULL
+
+        # replace zeros with very small constant
+        obs[obs == 0] <- 1e-10
+        pred[pred == 0] <- 1e-10
 
         # set random seed
         set.seed(103117)

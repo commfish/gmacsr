@@ -13,6 +13,88 @@
 #'
 gmacs_calc_growth_trans <- function(gpars, n_size_bins, size_breaks, type) {
   
+  if(type == 6) {
+    
+    # unlist parameters
+    Linf      <- gpars[[1]]
+    Kappa     <- gpars[[2]]
+    SigmaLinf <- gpars[[3]]
+    
+    nquad <- 32
+    quad  <- statmod::gauss.quad(nquad, kind = "legendre")
+    xg    <- quad$nodes
+    wg    <- quad$weights
+    
+    sigmaL2 <- SigmaLinf^2
+    tempL1  <- sqrt(2*pi*sigmaL2)
+    
+    # initialize transition matrix
+    growth_transition <- matrix(0, nrow = n_size_bins, ncol = n_size_bins)
+    growth_transition[n_size_bins, n_size_bins] <- 1
+    bin_mids <- size_breaks[1:n_size_bins] + (size_breaks[2] - size_breaks[1])/2
+    rownames(growth_transition) <- bin_mids
+    colnames(growth_transition) <- bin_mids
+    
+    for (l in 1:(n_size_bins - 1)) {
+      Len1Low <- size_breaks[l]
+      Len1Hi  <- size_breaks[l + 1]
+      scale   <- 1.0 / (Len1Hi - Len1Low)
+      temp    <- Len1Low
+      total   <- 0
+      
+      for (l2c in l:(n_size_bins + 10)) {
+        step <- if (l2c <= n_size_bins) {
+          size_breaks[l2c + 1] - size_breaks[l2c]
+        } else {
+          size_breaks[n_size_bins + 1] - size_breaks[n_size_bins]
+        }
+        
+        l1r     <- step / 2
+        Len2Low <- temp
+        Len2Hi  <- temp + step
+        temp    <- Len2Hi
+        prob_val <- 0
+        
+        # outer quadrature over l1
+        for (evl1 in 1:nquad) {
+          l1 <- ((xg[evl1] + 1) / 2) * (Len1Hi - Len1Low) + Len1Low
+          
+          # Upper and lower bounds for Linf
+          LinfU <- l1 + (Len2Hi - l1) / (1 - exp(-Kappa))
+          if (l2c == l) {
+            LinfL <- l1
+          } else {
+            LinfL <- l1 + (Len2Low - l1) / (1 - exp(-Kappa))
+          }
+          Linfr <- (LinfU - LinfL) / 2
+          
+          # inner quadrature over Linf
+          for (evL in 1:nquad) {
+            Linfval <- ((xg[evL] + 1) / 2) * (LinfU - LinfL) + LinfL
+            if (Linfval <= 0) next
+            
+            temp5 <- 1.0 / (Linfval * tempL1) *
+              exp(-((log(Linfval) - log(Linf))^2) / (2 * sigmaL2))
+            
+            prob_val <- prob_val + Linfr * wg[evL] * temp5 * wg[evl1] * scale
+          }
+        }
+        
+        prob_val <- prob_val * l1r
+        total    <- total + prob_val
+        
+        if (l2c < n_size_bins) {
+          growth_transition[l, l2c] <- prob_val
+        } else {
+          growth_transition[l, n_size_bins] <- growth_transition[l, n_size_bins] + prob_val
+        }
+      }
+      
+      # normalization
+      growth_transition[l, ] <- growth_transition[l, ] / total
+    }
+    
+  }
   if(type == 7){
     
     # unlist parameters
