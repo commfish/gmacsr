@@ -2440,6 +2440,10 @@ if(version %in% c("2.20.31")){
     positive_growth_penalty = as.numeric(na.omit(as.numeric(allout[last + 1,]))); last <- last + 1
     total = as.numeric(na.omit(as.numeric(allout[last + 1,]))); last <- last + 1
 
+    if(total == 0) {
+      return(list(print("Model Undefined")))
+    }
+
     # coerce to tibble
     rbind(catch, index, size, recruitment, tagging, growth) %>% as_tibble() %>%
       transmute(process = c("catch", "index", "size", "recruitment", "tagging", "growth"), raw_lik = V1, net_lik = V2) %>%
