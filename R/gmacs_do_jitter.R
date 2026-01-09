@@ -90,7 +90,7 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
       setwd(rundir)
       while(!("gmacs.rep" %in% list.files())){shell("gmacs.exe", wait = wait)}
       ao <- gmacs_read_allout("./Gmacsall.out", version = version)
-      if(length(ao) == 1){next}
+      if(length(ao) > 1){
       out$obj_function[i] <- ao$objective_function
       out$max_gradient[i] <- ao$max_gradient
       out$catch_lik[i] <- ao$likelihoods_by_type$net_lik[ao$likelihoods_by_type$process == "catch"]
@@ -99,6 +99,7 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
       out$mmb_curr[i] <- ao$mmb_curr
       out$bmsy[i] <- ao$bmsy
       out$ofl[i] <- ao$ofl_tot
+      }
 
       setwd("..")
     }
@@ -116,7 +117,8 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
   if(!file.exists("./mle/Gmacsall.out")){mle_ao <- org_ao}
 
   # identify mle model
-  mle_test <- mle_ao$objective_function < min(out$obj_function)
+  mle_test <- mle_ao$objective_function < min(out$obj_function, na.rm = T)
+
   if(mle_test == F){
 
     # find mle dir

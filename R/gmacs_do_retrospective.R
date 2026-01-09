@@ -51,10 +51,13 @@ gmacs_do_retrospective <- function(gmacs.dat, n_peel, pin = F, wait = T, plot_mm
     # make sure pin file is being used as expected
     if(pin == T){
       dat$use_pin <- 1
-      if(!file.exists("gmacs.pin")) {setwd(wd); stop("Cannot find gmacs.pin!!"); files_to_copy <- c(files_to_copy, "gmacs.pin")}
+      if(!file.exists("gmacs.pin")) {setwd(wd); stop("Cannot find gmacs.pin!!")}
+      files_to_copy <- c(files_to_copy, "gmacs.pin")
     }
     # copy files to retro dir
     file.copy(files_to_copy, "./retrospectives",overwrite = T, recursive = T)
+    # make sure jitter is off
+    dat$jitter <- 0
     # save dat file there
     gmacs_write_files_dat(dat, file = "./retrospectives/gmacs.dat")
 
