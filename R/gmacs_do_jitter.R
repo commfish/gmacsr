@@ -19,7 +19,9 @@
 #'
 #' @export
 #'
-gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
+gmacs_do_jitter <- function(gmacs.dat, sd, iter, pin = T, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
+
+  if(is.null(version)) {version <- "2.20.31"}
 
   # create output directories
   if(save_csv == T & is.null(csv_dir)) {csv_dir <- file.path(dirname(gmacs.dat), "output"); dir.create(csv_dir, showWarnings = F, recursive = TRUE)}
@@ -47,8 +49,16 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
     if(!file.exists(file.path(dat[grep("\\.dat", dat)]))) {setwd(wd); stop(paste("Cannot find", file.path(dat[grep("\\.dat", dat)]), "!!"))}
     if(!file.exists(file.path(dat[grep("\\.ctl", dat)]))) {setwd(wd); stop(paste("Cannot find", file.path(dat[grep("\\.ctl", dat)]), "!!"))}
     if(!file.exists(file.path(dat[grep("\\.prj", dat)]))) {setwd(wd); stop(paste("Cannot find", file.path(dat[grep("\\.prj", dat)]), "!!"))}
-    # make sure pin file is being not being usedused as expected
-    dat$use_pin <- 0
+    # make sure pin file is being used as expected
+    if(pin == T){
+      dat$use_pin <- 1
+      if(!file.exists("gmacs.pin")) {setwd(wd); stop("Cannot find gmacs.pin!!")}
+    }
+    if(version %in% c("2.20.20", "2.20.21") ) {
+      # make sure pin file is being not being usedused as expected
+      dat$use_pin <- 0
+    }
+
     # turn on reference points
     dat$calc_ref_points <- 1
     # set up jitter
@@ -64,9 +74,13 @@ gmacs_do_jitter <- function(gmacs.dat, sd, iter, wait = T, save_csv = T, csv_dir
     dir.create(jit)
     # rewrite gmacs.dat
     gmacs_write_files_dat(input = dat, file = file.path(jit, "gmacs.dat"))
-    # put files in - this likely will not work with relative pathes
-    file.copy(c(dat$dat_file, dat$ctl_file, dat$prj_file, "gmacs.exe"),
-              to = jit)
+    # put files in - this likely will not work with relative paths
+    files_to_copy <- c(dat$dat_file, dat$ctl_file, dat$prj_file, "gmacs.exe")
+    # make sure pin file is being used as expected
+    if(pin == T){
+      files_to_copy <- c(files_to_copy, "gmacs.pin")
+    }
+    file.copy(files_to_copy, to = jit)
     # set working
     setwd(jit)
     # names of necessary gmacs files
