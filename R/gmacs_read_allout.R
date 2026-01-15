@@ -15,7 +15,7 @@ gmacs_read_allout <- function(file, model_name = NULL, version = NULL) {
   # ggplot theme anticipating plotting later in the workflow
   theme_set(theme_sleek())
 
-if(is.null(version)){version = "2.20.31"}
+if(is.null(version)){version = "2.20.33"}
 
 if(version == "2.01.M.10"){
   # setup ----
@@ -2377,7 +2377,7 @@ if(version %in% c("2.20.21")){
     # objective function ----
     out$objective_function <- out$likelihoods_by_type %>% filter(process == "total") %>% pull(net_lik)
 }
-if(version %in% c("2.20.31")){
+if(version %in% c("2.20.31", "2.20.32", "2.20.33")){
     # setup ----
     # Suppress the NA message in the coercion to double
     options(warn = -1)
