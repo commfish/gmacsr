@@ -46,7 +46,7 @@ if(is.null(version)){version = "2.20.34"}
 
     # jittering ----
     out$jitter <- as.numeric(dat[7,1])
-    out$jitter_use_pin <- <- as.numeric(dat[8,1])
+    out$jitter_use_pin <- as.numeric(dat[8,1])
     out$jitter_sd <- as.numeric(dat[9,1])
 
     # out options ----
