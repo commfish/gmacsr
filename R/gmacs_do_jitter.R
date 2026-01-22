@@ -3,6 +3,7 @@
 #' Run GMACS jitter analysis, then save and plot results.
 #' @param gmacs.dat File path to gmacs.dat file.
 #' @param jitter_type Method used for jittering: 1) asymmetric normal within bounds, 2) uniform with shrunken interval around initial value, 3) normal with logistic transformation
+#' @param jitter_use_pin Use .PIN file for jittered starting values.
 #' @param sd Jitter standard deviation.
 #' @param iter Number of jittering runs.
 #' @param wait Passed to shell(): a logical (not NA) indicating whether the R interpreter should wait for the command to finish, or run it asynchronously. Default = T.
@@ -20,7 +21,7 @@
 #'
 #' @export
 #'
-gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, use_pin = 0, sd, iter, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
+gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, jitter_use_pin = 0, sd, iter, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
 
   if(is.null(version)) {version <- "2.20.34"}
 
@@ -55,10 +56,10 @@ gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, use_pin = 0, sd, iter, w
     dat$calc_ref_points <- 1
     # set up jitter
     dat$jitter <- jitter_type
-    if("use_pin" %in% names(dat)) {dat$use_pin <- use_pin}
+    if("jitter_use_pin" %in% names(dat)) {dat$jitter_use_pin <- jitter_use_pin}
     dat$jitter_sd <- sd
 
-    if(dat$use_pin == 1) {
+    if(dat$jitter_use_pin == 1) {
       if(!file.exists("gmacs.pin")) {setwd(wd); stop("Cannot find gmacs.pin!!")}
     }
 
@@ -73,7 +74,7 @@ gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, use_pin = 0, sd, iter, w
     # put files in - this likely will not work with relative paths
     files_to_copy <- c(dat$dat_file, dat$ctl_file, dat$prj_file, "gmacs.exe")
     # make sure pin file is being used as expected
-    if(dat$use_pin == 1){
+    if(dat$jitter_use_pin == 1){
       files_to_copy <- c(files_to_copy, "gmacs.pin")
     }
     file.copy(files_to_copy, to = jit)
