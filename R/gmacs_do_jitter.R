@@ -20,7 +20,7 @@
 #'
 #' @export
 #'
-gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, sd, iter, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
+gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, use_pin = 0, sd, iter, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
 
   if(is.null(version)) {version <- "2.20.34"}
 
@@ -50,16 +50,17 @@ gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, sd, iter, wait = T, save
     if(!file.exists(file.path(dat[grep("\\.dat", dat)]))) {setwd(wd); stop(paste("Cannot find", file.path(dat[grep("\\.dat", dat)]), "!!"))}
     if(!file.exists(file.path(dat[grep("\\.ctl", dat)]))) {setwd(wd); stop(paste("Cannot find", file.path(dat[grep("\\.ctl", dat)]), "!!"))}
     if(!file.exists(file.path(dat[grep("\\.prj", dat)]))) {setwd(wd); stop(paste("Cannot find", file.path(dat[grep("\\.prj", dat)]), "!!"))}
-    if(!("use_pin" %in% names(dat))) {dat$use_pin <- 0}
-    if(dat$use_pin == 1) {
-      if(!file.exists("gmacs.pin")) {setwd(wd); stop("Cannot find gmacs.pin!!")}
-    }
 
     # turn on reference points
     dat$calc_ref_points <- 1
     # set up jitter
     dat$jitter <- jitter_type
+    if("use_pin" %in% names(dat)) {dat$use_pin <- use_pin}
     dat$jitter_sd <- sd
+
+    if(dat$use_pin == 1) {
+      if(!file.exists("gmacs.pin")) {setwd(wd); stop("Cannot find gmacs.pin!!")}
+    }
 
     # do jitter ----
 
