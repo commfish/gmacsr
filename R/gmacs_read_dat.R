@@ -15,8 +15,8 @@ gmacs_read_dat <- function(dat_file, model_name = NULL, version = NULL) {
   # ggplot theme anticipating plotting later in the workflow
   theme_set(theme_sleek())
 
-  if(is.null(version)){version = "2.20.31"}
-  if(version %in% c("2.20.31")){
+  if(is.null(version)){version = "2.20.34"}
+  if(version %in% c("2.20.31", "2.20.32", "2.20.33", "2.20.34")){
     # setup ----
 
     # Suppress the NA message in the coercion to double

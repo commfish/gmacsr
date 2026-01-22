@@ -16,8 +16,8 @@ gmacs_write_dat <- function(input, file = NULL, version = NULL){
   out <- matrix(nrow = 1e6)
   last <- 0 # location tracker
 
-  if(is.null(version)){version = "2.20.31"}
-  if(version %in% c("2.20.31")){
+  if(is.null(version)){version = "2.20.34"}
+  if(version %in% c("2.20.31", "2.20.32", "2.20.33", "2.20.34")){
 
     # version ----
     out[last + 1,] <- "##==============================================================="; last <- last + 1
