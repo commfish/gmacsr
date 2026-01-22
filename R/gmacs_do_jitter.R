@@ -23,7 +23,7 @@
 #'
 gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, jitter_use_pin = 0, sd, iter, wait = T, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, model_name = NULL, version = NULL) {
 
-  if(is.null(version)) {version <- "2.20.34"}
+  if(is.null(version)) {version <- "2.20.34a"}
 
   # create output directories
   if(save_csv == T & is.null(csv_dir)) {csv_dir <- file.path(dirname(gmacs.dat), "output"); dir.create(csv_dir, showWarnings = F, recursive = TRUE)}
