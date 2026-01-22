@@ -2,7 +2,7 @@
 #'
 #' Run GMACS jitter analysis, then save and plot results.
 #' @param gmacs.dat File path to gmacs.dat file.
-#' @param jitter_type Method used for jittering: 1) Andre, 2) Buck, 3) Jie
+#' @param jitter_type Method used for jittering: 1) asymmetric normal within bounds, 2) uniform with shrunken interval around initial value, 3) normal with logistic transformation
 #' @param sd Jitter standard deviation.
 #' @param iter Number of jittering runs.
 #' @param wait Passed to shell(): a logical (not NA) indicating whether the R interpreter should wait for the command to finish, or run it asynchronously. Default = T.
