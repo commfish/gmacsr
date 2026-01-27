@@ -9,6 +9,7 @@
 #' @param add_n_est T/F Add estimated multinomial sample size. Default = T.
 #' @param agg_series T/F Plot aggregate series together. Default = T.
 #' @param agg_series_label character vector of labels for aggregate series, ex: c("Male", "Female") or c("New Shell", "Old Shell") or list with elements being character vectors for each aggregate series (if you want to use different labels)
+#' @param plot_type Plot type: 1) bar chart, 2) boxplot. Default = 1.
 #' @param data_summary NULL. Alternate way to bring in data, output of gmacs_get_catch_summary()
 #' @param file NULL. File paths to Gmacsall.out for each model to compare, passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
 #' @param model_name NULL. Character string passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
@@ -19,7 +20,7 @@
 #'
 #' @export
 #'
-gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_dir = NULL, size_lab = "Size", add_n = T, add_n_est = T, agg_series = T, agg_series_label = NULL, data_summary = NULL, file = NULL, model_name = NULL, version = NULL) {
+gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_dir = NULL, size_lab = "Size", add_n = T, add_n_est = T, agg_series = T, agg_series_label = NULL, plot_type = 1, data_summary = NULL, file = NULL, model_name = NULL, version = NULL) {
 
   # create output directories
   if(save_plot == T & is.null(plot_dir)) {plot_dir <- file.path(getwd(), "plots"); dir.create(plot_dir, showWarnings = F, recursive = TRUE)}
@@ -43,16 +44,25 @@ gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_d
     summarise(obs = sum(obs),
               pred = sum(pred),
               nsamp_obs = sum(nsamp_obs),
-              nsamp_est = sum(nsamp_est)) %>% ungroup -> data_summary
+              nsamp_est = sum(nsamp_est)) %>% ungroup -> data_summary_sum
 
 
   # sample size notation
-  if(add_n == T & add_n_est == F){data_summary <- data_summary %>% mutate(n_note = paste0("N = ", prettyNum(nsamp_obs, big.mark = ",")))}
-  if(add_n == F & add_n_est == T){data_summary <- data_summary %>% mutate(n_note = paste0("N est = ", prettyNum(round(nsamp_est), big.mark = ",")))}
-  if(add_n == T & add_n_est == T){data_summary <- data_summary %>% mutate(n_note = paste0("N = ", prettyNum(nsamp_obs, big.mark = ","), "\nN est = ", prettyNum(round(nsamp_est), big.mark = ",")))}
-  if(add_n == F & add_n_est == F){data_summary <- data_summary %>% mutate(n_note = NA)}
+  if(add_n == T & add_n_est == F){data_summary_sum <- data_summary_sum %>% mutate(n_note = paste0("N = ", prettyNum(nsamp_obs, big.mark = ",")))}
+  if(add_n == F & add_n_est == T){data_summary_sum <- data_summary_sum %>% mutate(n_note = paste0("N est = ", prettyNum(round(nsamp_est), big.mark = ",")))}
+  if(add_n == T & add_n_est == T){data_summary_sum <- data_summary_sum %>% mutate(n_note = paste0("N = ", prettyNum(nsamp_obs, big.mark = ","), "\nN est = ", prettyNum(round(nsamp_est), big.mark = ",")))}
+  if(add_n == F & add_n_est == F){data_summary_sum <- data_summary_sum %>% mutate(n_note = NA)}
 
   if(agg_series == F){
+    # summed version
+    data_summary_sum %>%
+      group_by(org_series, mod_series, aggregate_series) %>%
+      nest %>% ungroup %>%
+      dplyr::select(-mod_series) %>%
+      rowid_to_column(var = "mod_series") %>%
+      unnest() %>%
+      mutate(aggregate_series = NA) -> data_summary_sum
+    # non-summed version
     data_summary %>%
       group_by(org_series, mod_series, aggregate_series) %>%
       nest %>% ungroup %>%
@@ -61,9 +71,19 @@ gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_d
       unnest() %>%
       mutate(aggregate_series = NA) -> data_summary
     }
-  data_summary %>%
-    nest_by(mod_series, .keep = T) %>% ungroup %>% #pull(data) %>% .[[4]] -> data
+  data_summary_sum %>%
+    nest_by(mod_series, .keep = T) %>% ungroup %>% pull(data) %>% .[[4]] -> data
     mutate(plot = purrr::map(data, function(data) {
+
+      # filter non-aggregated data for model series
+      data_summary %>%
+        filter(mod_series == unique(data$mod_series)) -> data_non_sum
+
+      # get mean predicted instead of sum
+      data_summary %>%
+        filter(mod_series == unique(data$mod_series)) %>%
+        group_by(model, mod_series, aggregate_series, size) %>%
+        summarise(pred_bar = mean(pred)) -> data_mean
 
       # determine if comp is aggregated
       agg <- ifelse(sum(data %>% pull(aggregate_series) %>% is.na()) > 0, F, T)
@@ -80,8 +100,10 @@ gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_d
           mutate(obs = ifelse(obs == 0, NA, obs),
                  pred = ifelse(pred == 0, NA, pred)) %>%
           ggplot()+
-          geom_bar(aes(x = size, y = obs), stat = "identity", position = "identity", color = NA, fill = "grey70", width = bin_width, alpha = 0.5)+
-          geom_line(aes(x = size, y = pred, color = model))+
+          (if(plot_type == 1)geom_bar(aes(x = size, y = obs), stat = "identity", position = "identity", color = NA, fill = "grey70", width = bin_width, alpha = 0.5))+
+          (if(plot_type == 2)geom_boxplot(data = data_non_sum, aes(x = size, y = obs, group = size), color = "grey70", alpha = 0.5))+
+          (if(plot_type == 1)geom_line(aes(x = size, y = pred, color = model)))+
+          (if(plot_type == 2)geom_line(data =  data_mean, aes(x = size, y = pred_bar, color = model)))+
           scale_y_continuous(expand = expand_scale(mult = c(0, 0.1), add = c(0, 0)))+
           labs(x = size_lab, y = NULL, color = NULL, fill = NULL)+
           geom_text_npc(aes(npcx = "left", npcy = 0.9, label = n_note),
@@ -104,7 +126,9 @@ gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_d
 
         # adjust size bin for the secondary series
         data <- mutate(data, plot_size = (aggregate_series-1)*(max(size_bins)-min(size_bins)+bin_width*2) + size)
-        # get size breaks and labels for the plot
+        data_non_sum <- mutate(data_non_sum, plot_size = (aggregate_series-1)*(max(size_bins)-min(size_bins)+bin_width*2) + size)
+        data_mean <- mutate(data_mean, plot_size = (aggregate_series-1)*(max(size_bins)-min(size_bins)+bin_width*2) + size)
+         # get size breaks and labels for the plot
         brks <- labeling::extended(1, n_bins, m = 3); brks <- brks[brks != 0]
         data %>%
           distinct(aggregate_series, plot_size) %>%
@@ -121,14 +145,16 @@ gmacs_plot_size_comp_aggregate <- function(all_out = NULL, save_plot = T, plot_d
         if(is.null(agg_series_label)) {agg_series_label <- unique(data$aggregate_series)}
 
         ### plot
-        data %>%
+        data %>% #print(n = 1000)
           mutate(obs = ifelse(obs == 0, NA, obs),
                  pred = ifelse(pred == 0, NA, pred)) %>%
           mutate(agg_series_label = factor(agg_series_label[aggregate_series], levels = agg_series_label)) %>%
 
           ggplot()+
-          geom_bar(aes(x = plot_size, y = obs, fill = agg_series_label), stat = "identity", position = "identity", color = NA, width = bin_width)+
-          geom_line(aes(x = plot_size, y = pred, group = interaction(aggregate_series, model), color = model))+
+          (if(plot_type == 1)geom_bar(aes(x = plot_size, y = obs, fill = agg_series_label), stat = "identity", position = "identity", color = NA, width = bin_width, alpha = 0.5))+
+          (if(plot_type == 2)geom_boxplot(data = data_non_sum, aes(x = plot_size, y = obs, group = interaction(aggregate_series, size)), color = "grey70",  alpha = 0.5))+
+          (if(plot_type == 1)geom_line(aes(x = plot_size, y = pred,  group = interaction(aggregate_series, model), color = model)))+
+          (if(plot_type == 2)geom_line(data = data_mean, aes(x = plot_size, y = pred_bar,  group = interaction(aggregate_series, model), color = model)))+
           geom_vline(xintercept = divider, linetype = 2, color = "grey70")+
           scale_x_continuous(breaks = breaks, labels = labels)+
           scale_y_continuous(expand = expand_scale(mult = c(0, 0.1), add = c(0, 0)))+
