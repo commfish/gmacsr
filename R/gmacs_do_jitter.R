@@ -100,11 +100,10 @@ gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, jitter_use_pin = 0, sd, 
     writeLines(batch, "gmacs_run_jitter.bat")
     # run batch file
     shell('start "" "gmacs_run_jitter.bat"', wait = FALSE)
-    }
-
 
     # return to directory
     setwd(wd)
+    return("Running...")
 
   }
 
