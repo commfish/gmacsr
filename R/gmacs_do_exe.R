@@ -2,43 +2,42 @@
 #'
 #' Run gmacs.exe and do iterative reweighing of Francis weights
 #' @param gmacs.dat File path to gmacs.dat file
-#' @param pin T/F use pin file. Default = F.
+#' @param model_name NULL. Character string to save as object in output, later to be used for plot legends. Example: "23.1b".
 #' @param wait Passed to shell(): a logical (not NA) indicating whether the R interpreter should wait for the command to finish, or run it asynchronously.
 #' @param reweight T/F tune Francis weights. Default = F.
 #' @param level Level of convergence for Francis weights. Default = 0.001.
 #' @param max_iter Maximum iterations for tuning Francis weights. Default = 100.
 #' @param reweight_only T/F do initial GMACS run (F) or skip to iterative reweighting (T).
 #' @param jitter_rseed Use random number seed from jitter.txt file to match previous jittering run.
+#' @param version NULL. Character string denoting GMACS version. Default: "2.20.17".
 #'
 #' @return Run GMACS, standard GMACS output files.
 #' @examples gmacs_do_exe(gmacs.dat = "./AIGKC/models/2024/may/EAG/23.1b/gmacs.dat")
 #'
 #' @export
 #'
-gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.001, max_iter = 100, reweight_only = F, jitter_rseed = NULL) {
+gmacs_do_exe <- function(gmacs.dat, model_name = NULL, wait = T, reweight = F, level = 0.001, max_iter = 100, reweight_only = F, jitter_rseed = NULL, version = NULL) {
+
+  if(is.null(version)){version = "2.20.34b"}
+  if(version %in% c("2.20.34", "2.20.34a", "2.20.34b")){
 
   options(warn = -1)
+
+  # read gmacs.dat file
+  dat <- gmacs_read_files_dat(gmacs.dat, model_name)
+
   # get parent directory
   dir <- dirname(gmacs.dat)
   # save working dir
   wd <- getwd()
   setwd(dir) # change wd
-  # check for other needed inputs
-  if(!file.exists("gmacs.exe")){stop("Cannot find gmacs.exe!!")}
-  dat <- readLines("./gmacs.dat")
-  if(!file.exists(file.path(dat[grep("\\.dat", dat)]))) {stop(paste("Cannot find", file.path(dat[grep("\\.dat", dat)]), "!!"))}
-  if(!file.exists(file.path(dat[grep("\\.ctl", dat)]))) {stop(paste("Cannot find", file.path(dat[grep("\\.ctl", dat)]), "!!"))}
-  if(!file.exists(file.path(dat[grep("\\.prj", dat)]))) {stop(paste("Cannot find", file.path(dat[grep("\\.prj", dat)]), "!!"))}
-  if(pin == T){
-    dat[grep("pin", dat)] <- "1 # use pin file (0=no, 1=yes)"
-    writeLines(dat, "./gmacs.dat")
-    if(!file.exists("gmacs.pin")) {stop(paste("Cannot find gmacs.pin!!"))}
-  }
-  if(pin == F){
-    dat[grep("pin", dat)] <- "0 # use pin file (0=no, 1=yes)"
-    writeLines(dat, "./gmacs.dat")
-  }
 
+
+  # check for needed inputs
+  if(!file.exists("gmacs.exe")){stop("Cannot find gmacs.exe!!")}
+  if(!file.exists(dat$dat_file)) {stop(paste("Cannot find", dat$dat_file, "!!"))}
+  if(!file.exists(dat$ctl_file)) {stop(paste("Cannot find", dat$ctl_file, "!!"))}
+  if(!file.exists(dat$prj_file)) {stop(paste("Cannot find", dat$prj_file, "!!"))}
 
   # set gmacs call depending on jitter_rseed
   if(is.null(jitter_rseed)){g_call <- "gmacs.exe"}
@@ -71,7 +70,7 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
       converged <- F
       # turn off reference point calculation
       dat <- readLines("./gmacs_files_in.dat")
-      dat[33] <- "0 # Calculate reference points (0=no)"
+      dat[35] <- "0 # Calculate reference points (0=no)"
       writeLines(dat, "./gmacs.dat")
       ctl_file <- dat[6] # ctl file path
       # start a counter
@@ -96,7 +95,7 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
         iteration <- iteration + 1
       }
       # turn on reference point calculation, run gmacs once more
-      dat[33] <- "1 # Calculate reference points (0=no)"
+      dat[35] <- "1 # Calculate reference points (0=no)"
       writeLines(dat, "./gmacs.dat")
       shell(g_call)
       setwd(wd)
@@ -107,5 +106,96 @@ gmacs_do_exe <- function(gmacs.dat, pin = F, wait = T, reweight = F, level = 0.0
     }
 
   } else{setwd(wd); return("done!")}
+
+}
+  if(version %in% c("2.20.33", "2.20.31", "2.20.21", "2.20.20", "2.20.19", "2.20.17", "2.20.16", "2.20.14")){
+
+    options(warn = -1)
+
+    # read gmacs.dat file
+    dat <- gmacs_read_files_dat(gmacs.dat, model_name)
+
+    # get parent directory
+    dir <- dirname(gmacs.dat)
+    # save working dir
+    wd <- getwd()
+    setwd(dir) # change wd
+
+
+    # check for needed inputs
+    if(!file.exists("gmacs.exe")){stop("Cannot find gmacs.exe!!")}
+    if(!file.exists(dat$dat_file)) {stop(paste("Cannot find", dat$dat_file, "!!"))}
+    if(!file.exists(dat$ctl_file)) {stop(paste("Cannot find", dat$ctl_file, "!!"))}
+    if(!file.exists(dat$prj_file)) {stop(paste("Cannot find", dat$prj_file, "!!"))}
+
+    # set gmacs call depending on jitter_rseed
+    if(is.null(jitter_rseed)){g_call <- "gmacs.exe"}
+    if(!is.null(jitter_rseed)){
+      rseed <- readLines("jitter.txt")
+      g_call <- paste0("gmacs.exe -jitter ", jitter_rseed)
+    }
+
+    # run exe ----
+
+    # w/o reweight
+    if(reweight_only == F){
+      if(wait == F){shell(g_call, wait = F, intern = F)}else{shell(g_call)}
+    }
+    # do reweighting
+    if(reweight == T) {
+
+      # check wts convergence first time
+      # get lambdas from ctl file
+      readLines("gmacs_in.ctl")[grep("# Lambda for effective sample size", readLines("gmacs_in.ctl"))] %>%
+        str_split(" ") %>% unlist %>% as.numeric %>% na.omit -> ctl_wts
+      # get lambdas from allout file
+      readLines("Gmacsall.out")[grep("Francis_weights", readLines("Gmacsall.out"))+1] %>%
+        str_split(" ") %>% unlist %>% as.numeric %>% na.omit -> rep_wts
+      tibble(ctl_wts, rep_wts) %>%
+        mutate(diff = abs(ctl_wts - rep_wts) >= level) %>%
+        pull(diff) %>% sum -> test
+      if(test == 0){setwd(wd); return(paste0("wts convergence reached level = ", level))}
+      if(test > 0){
+        converged <- F
+        # turn off reference point calculation
+        dat <- readLines("./gmacs_files_in.dat")
+        dat[33] <- "0 # Calculate reference points (0=no)"
+        writeLines(dat, "./gmacs.dat")
+        ctl_file <- dat[6] # ctl file path
+        # start a counter
+        iteration <- 0
+        while(iteration < max_iter && converged == F){
+          # change ctl wts
+          ctl <- readLines("gmacs_in.ctl")
+          ctl[grep("# Lambda for effective sample size", ctl)] <- paste(str_flatten(rep_wts, collapse = " "), "# Lambda for effective sample size")
+          writeLines(ctl, ctl_file)
+          # run gmacs
+          shell(g_call)
+          # test convergence
+          readLines("gmacs_in.ctl")[grep("# Lambda for effective sample size", readLines("gmacs_in.ctl"))] %>%
+            str_split(" ") %>% unlist %>% as.numeric %>% na.omit -> ctl_wts
+          # get lambdas from allout file
+          readLines("Gmacsall.out")[grep("Francis_weights", readLines("Gmacsall.out"))+1] %>%
+            str_split(" ") %>% unlist %>% as.numeric %>% na.omit -> rep_wts
+          tibble(ctl_wts, rep_wts) %>%
+            mutate(diff = abs(ctl_wts - rep_wts) >= level) %>%
+            pull(diff) %>% sum -> test
+          if(sum(test) == 0) {converged = T}
+          iteration <- iteration + 1
+        }
+        # turn on reference point calculation, run gmacs once more
+        dat[33] <- "1 # Calculate reference points (0=no)"
+        writeLines(dat, "./gmacs.dat")
+        shell(g_call)
+        setwd(wd)
+        # done
+        if(converged == F) {return(paste0("wts did not reach convergence level = ", level))}
+        if(converged == T) {return(paste0("wts convergence reached level = ", level))}
+
+      }
+
+    } else{setwd(wd); return("done!")}
+
+  }
 
 }

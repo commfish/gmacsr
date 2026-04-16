@@ -11,8 +11,8 @@
 #'
 gmacs_write_files_dat <- function(input, file) {
 
-  if(is.null(input$version)){input$version = "2.20.34a"}
-  if(input$version %in% c("2.20.34", "2.20.34a")){
+  if(is.null(input$version)){input$version = "2.20.34b"}
+  if(input$version %in% c("2.20.34", "2.20.34a", "2.20.34b")){
     # setup ----
 
     # create output matrix

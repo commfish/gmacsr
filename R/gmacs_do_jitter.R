@@ -23,7 +23,7 @@
 #'
 gmacs_do_jitter <- function(gmacs.dat, jitter_type = 1, jitter_use_pin = 0, sd, iter, save_csv = T, csv_dir = NULL, save_plot = T, plot_dir = NULL, plot_only = F, batch = F, model_name = NULL, version = NULL) {
 
-  if(is.null(version)) {version <- "2.20.34a"}
+  if(is.null(version)) {version <- "2.20.34b"}
 
   if(batch == T){
 
