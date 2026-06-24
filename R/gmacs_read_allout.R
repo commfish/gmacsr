@@ -1934,7 +1934,8 @@ if(version %in% c("2.20.21")){
     ## weight at size matrix
     tmp <- matrix(nrow = out$n_sex*out$n_maturity*length(out$mod_yrs), ncol = length(out$size_mid_points)+3)
     for(i in 1:nrow(tmp)) {
-      tmp[i,] <- as.character(allout[last+4,1:ncol(tmp)])
+      tmp[i,] <- as.character(allout[last+3+i, 1:ncol(tmp)])
+
     }
     as_tibble(tmp) %>%
       mutate_at(2:ncol(.), as.numeric) %>%
@@ -2579,7 +2580,7 @@ if(version %in% c("2.20.31", "2.20.32", "2.20.33", "2.20.34", "2.20.34a", "2.20.
     ## weight at size matrix
     tmp <- matrix(nrow = out$n_sex*out$n_maturity*length(out$mod_yrs), ncol = length(out$size_mid_points)+3)
     for(i in 1:nrow(tmp)) {
-      tmp[i,] <- as.character(allout[last+4,1:ncol(tmp)])
+      tmp[i,] <- as.character(allout[last+3+i,1:ncol(tmp)])
     }
     as_tibble(tmp) %>%
       mutate_at(2:ncol(.), as.numeric) %>%
