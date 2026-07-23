@@ -5,15 +5,48 @@
 #' @param file NULL. File paths to Gmacsall.out for each model to compare, passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
 #' @param model_name NULL. Character string passed to gmacs_read_allout(). Expressed as character vector, not needed if all.out is provided.
 #' @param version NULL. Character string passed to gmacs_read_allout() denoting GMACS version, not needed if all.out is provided.
-#' @param stock name of stock to apply harvest strategy, currently only AIGKC
-#' @param hs_pars list of harvest strategy parameters needed. For AIGKC example: list(max_ex = 0.15, avg_wt = 4.41, calc_wt = F)
-
-#' @return Tibble of tac summary from.
-#' @examples gmacs_get_catch_summary(all_out = list(mod_23.0a, mod_23.1b))
+#' @param stock name of stock to apply harvest strategy, currently only "AIGKC", "BSTC", "BSSC", "BBRKC".
+#' @param hs_pars list of harvest strategy parameters needed. Different inputs
+#'   are needed depending on the stock/method:
+#'
+#'   * **AIGKC**: `list(max_ex = 0.15, avg_wt = 4.41, calc_wt = FALSE)`
+#'     - `max_ex`: maximum exploitation rate
+#'     - `avg_wt`: average weight (lb) used in biomass calc. NUll if `calc_wt = T`
+#'     - `calc_wt`: logical, whether to calculate weight internally from model N matrix
+#'
+#'   * **BBRKC**: `list(input, avg_wt, calc_wt, mfa, mma, lma, esb)`
+#'     - `input`: "gmacss", "survey", "lba" type data input
+#'     - `avg_wt`: average weight (lb) used in biomass calc. NUll if `calc_wt = T`
+#'     - `calc_wt`: logical, whether to calculate weight internally from model N matrix
+#'     - `mfa`: Current year mature female abundance, `input = "survey" or "lba"` only
+#'     - `mma`: Current year mature male abundance, `input = "survey" or "lba"` only
+#'     - `lma`: Current year legal male abundance, `input = "survey" or "lba"` only
+#'     - `esb`: Current year effective spawning biomass, `input = "survey" or "lba"` only
+#'
+#'   * **BSTC**: `list(input, mfb, mfb_avg, mmb, mmb_avg, pref_male, gamma_mmb, gamma_pref)`
+#'     - `input`: "survey", "model_survey", or "model_population" method
+#'     - `mfb`: Current year mature female biomass (lb), `input = "survey"` only
+#'     - `mfb_avg`: Average reference period (1982 - 2018) mature female biomass (lb), `input = "survey"` only
+#'     - `mmb`: Current year mature male biomass (lb), `input = "survey"` only
+#'     - `mmb_avg`: Average reference period (1982 - 2018) mature male biomass (lb), `input = "survey"` only
+#'     - `pref_male`: Current year preferred male abundance and biomass, `input = "survey"` only
+#'     - `gamma_mmb`: Data frame with year and `gamma_mmb`, the percentage of EBS MMB within W166 or E166 subdistrict, `input = "model_survey"` or `"model_population"` only
+#'     - `gamma_pref`: Data frame with year and `gamma_pref`, the percentage of EBS preferred males within W166 or E166 subdistrict, `input = "model_survey"` or `"model_population"` only
+#'
+#'   * **BSSC**: `list(input, )`
+#'     - `input`: "survey", "model_survey", or "model_population" method
+#'     - `b`: Current year total mature biomass (lb), `input = "survey"` only
+#'     - `bmsy`: Average reference period (1983 - (current year - 1)) total mature biomass (lb), `input = "survey"` only
+#'     - `mmb`: Current year mature male biomass (lb), `input = "survey"` only
+#'     - `pref_male`: Current year preferred male abundance and biomass, `input = "survey"` only
+#'     - `percent_new`: Data frame with year and percentage of new shell crab in preferred size (>= 101 mm) male abundance, `input = "model_survey"` or `"model_population"` only
+#'
+#' @return Tibble of tac summary with weights in millions of pounds.
+#' @examples
 #'
 #' @export
 #'
-gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, version = NULL, stock = c("AIGKC", "BBRKC", "BSTC"), hs_pars = NULL, bbrkc_lba = F) {
+gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, version = NULL, stock = NULL, hs_pars = NULL) {
 
   # bring in all out data ----
 
@@ -85,7 +118,7 @@ gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, versio
       }
       if(stock == "BBRKC") {
 
-        if(bbrkc_lba == F) {
+        if(hs_pars$input == "gmacs") {
           # nmfs survey catchability
           nmfs_q <- gmacs_get_pars(list(all_out)) %>%
             filter(grepl("Survey_q_survey_1", parameter)) %>%
@@ -362,13 +395,13 @@ gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, versio
 
         # step 2: elma max cap
         ## perf male data.frame must be formatted correctly
-        tibble(perf_male_abund = pref_male %>% pull(abundance) %>% sum(),
+        tibble(pref_male_abund = pref_male %>% pull(abundance) %>% sum(),
                avg_wt = pref_male %>%
                  group_by(year) %>%
                  summarise(avg_wt = sum(biomass) / sum(abundance)) %>% pull(avg_wt),
-               percent_old = pref_male$abundance[pref_male$shell == "old"] / perf_male_abund,
+               percent_old = pref_male$abundance[pref_male$shell == "old"] / pref_male_abund,
                old_slx = ifelse("old_slx" %in% names(hs_pars), hs_pars$old_slx, 0.4),,
-               elma = perf_male_abund * (1 - percent_old) + old_slx * perf_male_abund * percent_old,
+               elma = pref_male_abund * (1 - percent_old) + old_slx * pref_male_abund * percent_old,
                elmb = elma * avg_wt) -> elm_cap
 
         # compute final tac in lb, create output
@@ -407,11 +440,45 @@ gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, versio
             # join to weight at size
             left_join(all_out$wt_at_size %>%
                         filter(sex == "male", maturity == 1) %>%
-                        transmute(year, size, wt),
+                        transmute(year, size, wt) %>%
+                        gmacs_carry_forward(),
                       by = c("year", "size")) %>%
             # summarise
             group_by(year) %>%
             summarise(mmb = sum(males_mature * wt * q * slx_capture) * 1000 / 0.000453592) %>% ungroup -> mmb_lb
+
+          # mmb_lb with custom mature size
+          if("size_maturity" %in% names(hs_pars)) {
+
+            # mature male biomass from n matrix
+            gmacs_get_n_matrix(list(all_out)) %>%
+              transmute(year, size, males) %>%
+              # filter for mature size
+              filter(size >= hs_pars$size_maturity) %>%
+              # join to selectivty
+              left_join(gmacs_get_slx(list(all_out)) %>%
+                          filter((fleet == "NMFS_Trawl_1982" & year < 1989) | (fleet == "NMFS_Trawl_1989" & year >= 1989),
+                                 sex == "male") %>%
+                          transmute(year, size, slx_capture) %>%
+                          gmacs_carry_forward(),
+                        by = c("year", "size")) %>%
+              # join to catchability
+              left_join(gmacs_get_index_summary(list(all_out)) %>%
+                          filter(fleet %in% c("NMFS_Trawl_1982", "NMFS_Trawl_1989"),
+                                 sex == "male") %>%
+                          transmute(year, q),
+                        by = "year") %>%
+              # join to weight at size
+              left_join(all_out$wt_at_size %>%
+                          filter(sex == "male", maturity == 1) %>%
+                          transmute(year, size, wt) %>%
+                          gmacs_carry_forward(),
+                        by = c("year", "size")) %>%
+              # summarise
+              group_by(year) %>%
+              summarise(mmb = sum(males_mature * wt * q * slx_capture) * 1000 / 0.000453592) %>% ungroup -> mmb_lb
+
+          }
 
           # mature female biomass from n matrix
           gmacs_get_n_matrix(list(all_out)) %>%
@@ -432,16 +499,161 @@ gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, versio
             # join to weight at size
             left_join(all_out$wt_at_size %>%
                         filter(sex == "female", maturity == 1) %>%
-                        transmute(year, size, wt),
+                        transmute(year, size, wt) %>%
+                        gmacs_carry_forward(),
                       by = c("year", "size")) %>%
             # summarise
             group_by(year) %>%
-            summarise(mmb = sum(females_mature * wt * q * slx_capture) * 1000 / 0.000453592) %>% ungroup -> mfb_lb
+            summarise(mfb = sum(females_mature * wt * q * slx_capture) * 1000 / 0.000453592) %>% ungroup -> mfb_lb
 
           # total mature biomass
+          left_join(mmb_lb, mfb_lb, by = "year") %>%
+            mutate(tmb = mmb + mfb) -> tmb_lb
+
+          # preferred male
+          gmacs_get_n_matrix(list(all_out)) %>%
+            transmute(year, size, males) %>%
+            filter(size >= 101) %>%
+            # join to selectivty
+            left_join(gmacs_get_slx(list(all_out)) %>%
+                        filter((fleet == "NMFS_Trawl_1982" & year < 1989) | (fleet == "NMFS_Trawl_1989" & year >= 1989),
+                               sex == "male") %>%
+                        transmute(year, size, slx_capture) %>%
+                        gmacs_carry_forward(),
+                      by = c("year", "size")) %>%
+            # join to catchability
+            left_join(gmacs_get_index_summary(list(all_out)) %>%
+                        filter(fleet %in% c("NMFS_Trawl_1982", "NMFS_Trawl_1989"),
+                               sex == "male") %>%
+                        transmute(year, q) %>%
+                        gmacs_carry_forward(),
+                      by = "year") %>%
+            # join to weight at size
+            left_join(all_out$wt_at_size %>%
+                        filter(sex == "male", maturity == 1) %>%
+                        transmute(year, size, wt) %>%
+                        gmacs_carry_forward(),
+                      by = c("year", "size")) %>%
+            # summarise
+            group_by(year) %>%
+            summarise(abundance = sum(males * q * slx_capture) * 1000 / 0.000453592,
+                      biomass = sum(males * wt * q * slx_capture) * 1000 / 0.000453592) %>% ungroup %>%
+            # add shell condition
+            expand_grid(., shell = c("new", "old")) %>%
+            # join to percent new shell
+            left_join(percent_new, by = "year") %>%
+            filter(year == max(year)) %>%
+            transmute(year, shell,
+                      abundance = ifelse(shell == "new", percent_new * abundance, (1 - percent_new) * abundance),
+                      biomass = ifelse(shell == "new", percent_new * biomass, (1 - percent_new) * biomass)) -> pref_male
+
+        # b
+        tmb_lb %>%
+          filter(year == max(year)) %>%
+          pull(tmb) -> b
+
+        # bmsy
+        tmb_lb %>%
+          filter(year %in% 1983:(max(year)-1)) %>%
+          pull(tmb) %>% mean(., na.rm = T) -> bmsy
+
+        # mmb
+        mmb_lb %>%
+          filter(year == max(year)) %>%
+          pull(mmb) -> mmb
 
         }
+        if(hs_pars$input == "model_population") {
 
+          # mature male biomass from n matrix
+          gmacs_get_n_matrix(list(all_out)) %>%
+            transmute(year, size, males_mature) %>%
+            # join to weight at size
+            left_join(all_out$wt_at_size %>%
+                        filter(sex == "male", maturity == 1) %>%
+                        transmute(year, size, wt) %>%
+                        gmacs_carry_forward(),
+                      by = c("year", "size")) %>%
+            # summarise
+            group_by(year) %>%
+            summarise(mmb = sum(males_mature * wt) * 1000 / 0.000453592) %>% ungroup -> mmb_lb
+
+          # mmb_lb with custom mature size
+          if("size_maturity" %in% names(hs_pars)) {
+
+            # mature male biomass from n matrix
+            gmacs_get_n_matrix(list(all_out)) %>%
+              transmute(year, size, males) %>%
+              # filter for mature size
+              filter(size >= hs_pars$size_maturity) %>%
+              # join to weight at size
+              left_join(all_out$wt_at_size %>%
+                          filter(sex == "male", maturity == 1) %>%
+                          transmute(year, size, wt) %>%
+                          gmacs_carry_forward(),
+                        by = c("year", "size")) %>%
+              # summarise
+              group_by(year) %>%
+              summarise(mmb = sum(males_mature * wt) * 1000 / 0.000453592) %>% ungroup -> mmb_lb
+
+          }
+
+          # mature female biomass from n matrix
+          gmacs_get_n_matrix(list(all_out)) %>%
+            transmute(year, size, females_mature) %>%
+            # join to weight at size
+            left_join(all_out$wt_at_size %>%
+                        filter(sex == "female", maturity == 1) %>%
+                        transmute(year, size, wt) %>%
+                        gmacs_carry_forward(),
+                      by = c("year", "size")) %>%
+            # summarise
+            group_by(year) %>%
+            summarise(mfb = sum(females_mature * wt) * 1000 / 0.000453592) %>% ungroup -> mfb_lb
+
+          # total mature biomass
+          left_join(mmb_lb, mfb_lb, by = "year") %>%
+            mutate(tmb = mmb + mfb) -> tmb_lb
+
+          # preferred male
+          gmacs_get_n_matrix(list(all_out)) %>%
+            transmute(year, size, males) %>%
+            filter(size >= 101) %>%
+            # join to weight at size
+            left_join(all_out$wt_at_size %>%
+                        filter(sex == "male", maturity == 1) %>%
+                        transmute(year, size, wt) %>%
+                        gmacs_carry_forward(),
+                      by = c("year", "size")) %>%
+            # summarise
+            group_by(year) %>%
+            summarise(abundance = sum(males) * 1000 / 0.000453592,
+                      biomass = sum(males * wt) * 1000 / 0.000453592) %>% ungroup %>%
+            # add shell condition
+            expand_grid(., shell = c("new", "old")) %>%
+            # join to percent new shell
+            left_join(percent_new, by = "year") %>%
+            filter(year == max(year)) %>%
+            transmute(year, shell,
+                      abundance = ifelse(shell == "new", percent_new * abundance, (1 - percent_new) * abundance),
+                      biomass = ifelse(shell == "new", percent_new * biomass, (1 - percent_new) * biomass)) -> pref_male
+
+          # b
+          tmb_lb %>%
+            filter(year == max(year)) %>%
+            pull(tmb) -> b
+
+          # bmsy
+          tmb_lb %>%
+            filter(year %in% 1983:(max(year)-1)) %>%
+            pull(tmb) %>% mean(., na.rm = T) -> bmsy
+
+          # mmb
+          mmb_lb %>%
+            filter(year == max(year)) %>%
+            pull(mmb) -> mmb
+
+        }
 
         # get b / bmsy
         b_bmsy <- b / bmsy
@@ -458,13 +670,13 @@ gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, versio
 
         # step 2: elma max cap
         ## perf male data.frame must be formatted correctly
-        tibble(perf_male_abund = pref_male %>% pull(abundance) %>% sum(),
+        tibble(pref_male_abund = pref_male %>% pull(abundance) %>% sum(),
                avg_wt = pref_male %>%
                  group_by(year) %>%
                  summarise(avg_wt = sum(biomass) / sum(abundance)) %>% pull(avg_wt),
-               percent_old = pref_male$abundance[pref_male$shell == "old"] / perf_male_abund,
+               percent_old = pref_male$abundance[pref_male$shell == "old"] / pref_male_abund,
                old_slx = ifelse("old_slx" %in% names(hs_pars), hs_pars$old_slx, 0.25),
-               elma = perf_male_abund * (1 - percent_old) + old_slx * perf_male_abund * percent_old,
+               elma = pref_male_abund * (1 - percent_old) + old_slx * pref_male_abund * percent_old,
                elmb = elma * avg_wt) -> elm_cap
 
         # compute final tac in lb, create output
@@ -475,7 +687,7 @@ gmacs_get_tac <- function(all_out = NULL, file = NULL, model_name = NULL, versio
                  max_tac_lb = 0.58 * elmb,
                  tac_lb = min(tac_no_cap_lb, max_tac_lb)) %>%
           # convert to millions
-          mutate_at(c(1, 2, 4, 6, 9:14), function(x){x / 1e6}) -> out
+          mutate_at(c(1, 2, 4, 6, 10:14), function(x){x / 1e6}) -> out
 
       }
 
