@@ -6,19 +6,20 @@
 \usage{
 gmacs_do_exe(
   gmacs.dat,
-  pin = F,
+  model_name = NULL,
   wait = T,
   reweight = F,
   level = 0.001,
   max_iter = 100,
   reweight_only = F,
-  jitter_rseed = NULL
+  jitter_rseed = NULL,
+  version = NULL
 )
 }
 \arguments{
 \item{gmacs.dat}{File path to gmacs.dat file}
 
-\item{pin}{T/F use pin file. Default = F.}
+\item{model_name}{NULL. Character string to save as object in output, later to be used for plot legends. Example: "23.1b".}
 
 \item{wait}{Passed to shell(): a logical (not NA) indicating whether the R interpreter should wait for the command to finish, or run it asynchronously.}
 
@@ -31,6 +32,8 @@ gmacs_do_exe(
 \item{reweight_only}{T/F do initial GMACS run (F) or skip to iterative reweighting (T).}
 
 \item{jitter_rseed}{Use random number seed from jitter.txt file to match previous jittering run.}
+
+\item{version}{NULL. Character string denoting GMACS version. Default: "2.20.17".}
 }
 \value{
 Run GMACS, standard GMACS output files.

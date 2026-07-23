@@ -9,6 +9,7 @@ gmacs_plot_osa_residuals(
   save_plot = T,
   plot_dir = NULL,
   size_lab = "Size",
+  widths = c(1, 3),
   data_summary = NULL,
   file = NULL,
   model_name = NULL,
@@ -23,6 +24,8 @@ gmacs_plot_osa_residuals(
 \item{plot_dir}{Null. Directory in which to save plot. If NULL, a directory called 'plots' will be created in the same directory as gmacs.dat.}
 
 \item{size_lab}{Optional, custom size axis label, as character vector, example: "Carapace Length (mm)". Default = "Size".}
+
+\item{widths}{Relative widths to pass to patchwork. Default = c(1, 3)}
 
 \item{data_summary}{NULL. Alternate way to bring in data, output of gmacs_get_index_summary()}
 

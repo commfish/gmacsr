@@ -6,14 +6,16 @@
 \usage{
 gmacs_do_jitter(
   gmacs.dat,
+  jitter_type = 1,
+  jitter_use_pin = 0,
   sd,
   iter,
-  wait = T,
   save_csv = T,
   csv_dir = NULL,
   save_plot = T,
   plot_dir = NULL,
   plot_only = F,
+  batch = F,
   model_name = NULL,
   version = NULL
 )
@@ -21,11 +23,13 @@ gmacs_do_jitter(
 \arguments{
 \item{gmacs.dat}{File path to gmacs.dat file.}
 
+\item{jitter_type}{Method used for jittering: 1) asymmetric normal within bounds, 2) uniform with shrunken interval around initial value, 3) normal with logistic transformation}
+
+\item{jitter_use_pin}{Use .PIN file for jittered starting values.}
+
 \item{sd}{Jitter standard deviation.}
 
 \item{iter}{Number of jittering runs.}
-
-\item{wait}{Passed to shell(): a logical (not NA) indicating whether the R interpreter should wait for the command to finish, or run it asynchronously. Default = T.}
 
 \item{save_csv}{T/F save csv file output. Default = T.}
 
@@ -36,6 +40,8 @@ gmacs_do_jitter(
 \item{plot_dir}{Null. Directory in which to save plot. If NULL, a directory called 'plots' will be created in the same directory as gmacs.dat.}
 
 \item{plot_only}{T/F only plot results (analysis already run). Default = F.}
+
+\item{batch}{T/F Run jitter iterations in batch file, skip reading and saving results. Default = F.}
 
 \item{model_name}{NULL. Character string to save as object in output, later to be used for plot legends. Example: "23.1b".}
 

@@ -13,6 +13,7 @@ gmacs_plot_size_comp_aggregate(
   add_n_est = T,
   agg_series = T,
   agg_series_label = NULL,
+  plot_type = 1,
   data_summary = NULL,
   file = NULL,
   model_name = NULL,
@@ -35,6 +36,8 @@ gmacs_plot_size_comp_aggregate(
 \item{agg_series}{T/F Plot aggregate series together. Default = T.}
 
 \item{agg_series_label}{character vector of labels for aggregate series, ex: c("Male", "Female") or c("New Shell", "Old Shell") or list with elements being character vectors for each aggregate series (if you want to use different labels)}
+
+\item{plot_type}{Plot type: 1) bar chart, 2) boxplot. Default = 1.}
 
 \item{data_summary}{NULL. Alternate way to bring in data, output of gmacs_get_catch_summary()}
 
